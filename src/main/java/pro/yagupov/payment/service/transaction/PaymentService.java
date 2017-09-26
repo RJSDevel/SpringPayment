@@ -17,6 +17,7 @@ import pro.yagupov.payment.service.transaction.processors.TransactionProcessorMa
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Created by Yagupov Ruslan on 18.04.17.
@@ -42,11 +43,14 @@ public class PaymentService {
             throw new ProcessingException(ProcessingException.ERROR_SOURCE_DESTINATION_EQUALS);
         }
 
-        AmountsTDO amounts = pTransaction.getAmounts();
-        if (amounts.getOrderAmount() != null || amounts.getTipAmount() != null)
-        if (amounts.getAmount().compareTo(amounts.getOrderAmount().add(amounts.getTipAmount())) != 0) {
-            throw new ProcessingException(ProcessingException.ERROR_AMOUNT_IS_NOT_EQUALS_ORDER_PLUS_TIPS);
-        }
+        List<AmountsTDO> amounts = pTransaction.getAmounts();
+        amounts.forEach(pAmountsTDO -> {
+            if (pAmountsTDO.getOrderAmount() != null || pAmountsTDO.getTipAmount() != null)
+                if (pAmountsTDO.getAmount().compareTo(pAmountsTDO.getOrderAmount().add(pAmountsTDO.getTipAmount())) != 0) {
+                    throw new ProcessingException(ProcessingException.ERROR_AMOUNT_IS_NOT_EQUALS_ORDER_PLUS_TIPS);
+                }
+        });
+
 
         Account source = accountDao.getAccountByUserAndId(pTransaction.getSource(), pUser);
         if (source == Account.NOT_FOUND) {

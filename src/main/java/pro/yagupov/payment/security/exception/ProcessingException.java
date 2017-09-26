@@ -19,6 +19,10 @@ public class ProcessingException extends PaymentException {
         super(error);
     }
 
+    public ProcessingException(Error error, String message) {
+        super(error, message);
+    }
+
     public ProcessingException(Error error, boolean dangerous) {
         super(error);
     }

@@ -1,5 +1,6 @@
 package pro.yagupov.payment.domain.tdo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
@@ -15,6 +16,13 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class AmountsTDO {
 
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private long id;
+
+    @JsonProperty(required = true)
+    @JsonFormat(shape = JsonFormat.Shape.NUMBER)
+    private Amounts.PaymentType type;
+
     @JsonProperty(required = true)
     private BigDecimal amount;
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -25,7 +33,9 @@ public class AmountsTDO {
     private BigDecimal cashbackAmount = new BigDecimal(0);
 
 
-    public AmountsTDO(Amounts pAmounts) {
+    AmountsTDO(Amounts pAmounts) {
+        id = pAmounts.getId();
+        type = pAmounts.getType();
         amount = pAmounts.getAmount();
         orderAmount = pAmounts.getOrderAmount();
         tipAmount = pAmounts.getTipAmount();

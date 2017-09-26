@@ -8,10 +8,14 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.UpdateTimestamp;
 import pro.yagupov.payment.domain.entity.account.Account;
+import pro.yagupov.payment.domain.tdo.AmountsTDO;
 import pro.yagupov.payment.domain.tdo.TransactionTDO;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 
 
 /**
@@ -22,13 +26,6 @@ import java.sql.Timestamp;
 @Entity
 @Table(name = "transactions")
 public class Transaction {
-
-    public enum PaymentType {
-        CREDIT_DEBIT,
-        CASH,
-        CHEQUE,
-        CUSTOM_FUNDING_SOURCE
-    }
 
     public enum Operation {
         AUTHORIZE,
@@ -67,19 +64,14 @@ public class Transaction {
 
     @Column(nullable = false, updatable = false)
     @Enumerated(EnumType.ORDINAL)
-    private PaymentType type;
-
-    @Column(nullable = false, updatable = false)
-    @Enumerated(EnumType.ORDINAL)
     private Operation operation;
 
     @Column(nullable = false)
     @Enumerated(EnumType.ORDINAL)
     private Status status;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "amounts", updatable = false)
-    private Amounts amounts;
+    @OneToMany(mappedBy = "transaction", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Amounts> amounts;
 
     @Column
     private String comment;
@@ -113,9 +105,14 @@ public class Transaction {
         }
 
         operation = pTransaction.getOperation();
-        type = pTransaction.getType();
         status = pTransaction.getStatus();
-        amounts = new Amounts(pTransaction.getAmounts());
+
+        if (amounts == null) amounts = new ArrayList<>();
+
+        pTransaction
+                .getAmounts()
+                .forEach(pAmountsTDO -> amounts.add(new Amounts(pAmountsTDO, this)));
+
         comment = pTransaction.getComment();
 
         source = pSource;

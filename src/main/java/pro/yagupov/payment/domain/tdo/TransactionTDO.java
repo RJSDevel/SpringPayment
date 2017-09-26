@@ -6,10 +6,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import pro.yagupov.payment.domain.entity.transaction.Amounts;
 import pro.yagupov.payment.domain.entity.transaction.Transaction;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * Created by Yagupov Ruslan on 19.04.17.
@@ -29,10 +33,6 @@ public class TransactionTDO {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String child;
 
-    @JsonProperty(required = true)
-    @JsonFormat(shape = JsonFormat.Shape.NUMBER)
-    private Transaction.PaymentType type;
-
     @Setter
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @JsonFormat(shape = JsonFormat.Shape.NUMBER)
@@ -44,7 +44,7 @@ public class TransactionTDO {
 
     @JsonProperty(required = true)
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private AmountsTDO amounts;
+    private List<AmountsTDO> amounts = new ArrayList<>();
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String comment;
@@ -68,9 +68,10 @@ public class TransactionTDO {
         if (!Objects.isNull(pTransaction.getParent())) parent = pTransaction.getParent().getGuid();
         if (!Objects.isNull(pTransaction.getChild())) child = pTransaction.getChild().getGuid();
 
-        amounts = new AmountsTDO(pTransaction.getAmounts());
+        pTransaction
+                .getAmounts()
+                .forEach(pAmounts -> amounts.add(new AmountsTDO(pAmounts)));
 
-        type = pTransaction.getType();
         operation = pTransaction.getOperation();
         status = pTransaction.getStatus();
 
