@@ -25,10 +25,8 @@ public class User implements UserDetails, CredentialsContainer {
     @Column
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-
     @Column
     private String username;
-
     @Column
     private String password;
 
@@ -37,15 +35,14 @@ public class User implements UserDetails, CredentialsContainer {
 
     @Column
     private boolean accountNonExpired;
-
     @Column
     private boolean accountNonLocked;
-
     @Column
     private boolean credentialsNonExpired;
-
     @Column
     private boolean enabled;
+    @Column
+    private boolean confirmed;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Account> accounts;

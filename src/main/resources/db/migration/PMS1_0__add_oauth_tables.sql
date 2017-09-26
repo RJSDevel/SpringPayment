@@ -1,11 +1,12 @@
 CREATE TABLE `oauth_users` (
   `id`                    INTEGER AUTO_INCREMENT,
+  `username`              VARCHAR(56) UNIQUE,
   `password`              VARCHAR(256),
-  `username`              VARCHAR(56) UNIQUE ,
-  `accountNonExpired`     BOOL                DEFAULT TRUE,
-  `accountNonLocked`      BOOL                DEFAULT TRUE,
-  `credentialsNonExpired` BOOL                DEFAULT TRUE,
-  `enabled`               BOOL                DEFAULT TRUE,
+  `accountNonExpired`     BOOL    DEFAULT TRUE,
+  `accountNonLocked`      BOOL    DEFAULT TRUE,
+  `credentialsNonExpired` BOOL    DEFAULT TRUE,
+  `enabled`               BOOL    DEFAULT TRUE,
+  `confirmed`             BOOL    DEFAULT FALSE,
   PRIMARY KEY (`id`, `username`)
 );
 
@@ -14,6 +15,8 @@ CREATE TABLE `oauth_users_groups` (
   `name`      VARCHAR(56) UNIQUE NOT NULL,
   `authority` VARCHAR(56)        NOT NULL
 );
+
+INSERT INTO `oauth_users_groups` (name, authority) VALUES ('USER', 'read,write');
 
 CREATE TABLE `oauth_users_authorities` (
   `user_id`  INTEGER NOT NULL,
@@ -46,6 +49,9 @@ CREATE TABLE `oauth_client_details` (
   `additional_information`  VARCHAR(4096) DEFAULT NULL,
   `autoapprove`             VARCHAR(256)  DEFAULT NULL
 );
+
+INSERT INTO `oauth_client_details` (`client_id`, `client_secret`, `scope`, `authorities`, `authorized_grant_types`, `autoapprove`)
+VALUES ('web', 'secret', 'read,write,trust', 'ROLE_USER', 'password,refresh_token,client_credentials', 1);
 
 CREATE TABLE `oauth_code` (
   `code`           VARCHAR(256) DEFAULT NULL,

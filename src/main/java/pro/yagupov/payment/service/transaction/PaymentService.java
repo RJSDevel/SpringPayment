@@ -12,7 +12,7 @@ import pro.yagupov.payment.domain.entity.auth.User;
 import pro.yagupov.payment.domain.entity.transaction.Transaction;
 import pro.yagupov.payment.domain.tdo.AmountsTDO;
 import pro.yagupov.payment.domain.tdo.TransactionTDO;
-import pro.yagupov.payment.security.exception.TransactionProcessingException;
+import pro.yagupov.payment.security.exception.ProcessingException;
 import pro.yagupov.payment.service.transaction.processors.TransactionProcessorManager;
 
 import java.util.ArrayList;
@@ -36,25 +36,26 @@ public class PaymentService {
     @Autowired
     private TransactionProcessorManager transactionProcessorManager;
 
-    private Transaction preProcessingChecks(TransactionTDO pTransaction, User pUser) {
+    private Transaction preProcessingChecks(User pUser, TransactionTDO pTransaction) {
 
         if (pTransaction.getSource() == pTransaction.getDestination()) {
-            throw new TransactionProcessingException("Source account and destination accounts can't be equal");
+            throw new ProcessingException(ProcessingException.ERROR_SOURCE_DESTINATION_EQUALS);
         }
 
         AmountsTDO amounts = pTransaction.getAmounts();
-        if (amounts.getAmount() != amounts.getOrderAmount() + amounts.getTipAmount()) {
-            throw new TransactionProcessingException("Amount doesn't equal order + tips");
+        if (amounts.getOrderAmount() != null || amounts.getTipAmount() != null)
+        if (amounts.getAmount().compareTo(amounts.getOrderAmount().add(amounts.getTipAmount())) != 0) {
+            throw new ProcessingException(ProcessingException.ERROR_AMOUNT_IS_NOT_EQUALS_ORDER_PLUS_TIPS);
         }
 
         Account source = accountDao.getAccountByUserAndId(pTransaction.getSource(), pUser);
         if (source == Account.NOT_FOUND) {
-            throw new TransactionProcessingException("Source account doesn't belong user");
+            throw new ProcessingException(ProcessingException.ERROR_SOURCE_ACCOUNT_DOESNT_BELONG_USER);
         }
 
         Account destination = accountDao.getAccountById(pTransaction.getDestination());
         if (destination == Account.NOT_FOUND) {
-            throw new TransactionProcessingException("Destination account doesn't exists");
+            throw new ProcessingException(ProcessingException.ERROR_DESTINATION_ACCOUNT_DOESNT_EXISTS);
         }
 
         Transaction transaction = new Transaction(pTransaction, source, destination);
@@ -71,13 +72,13 @@ public class PaymentService {
     }
 
     @Transactional
-    public TransactionTDO authorizeTransaction(TransactionTDO pTransaction, User pUser) {
+    public TransactionTDO authorizeTransaction(User pUser, TransactionTDO pTransaction) {
         pTransaction.setOperation(Transaction.Operation.AUTHORIZE);
-        return new TransactionTDO(transactionProcessorManager.processing(preProcessingChecks(pTransaction, pUser)));
+        return new TransactionTDO(transactionProcessorManager.processing(preProcessingChecks(pUser, pTransaction)));
     }
 
     @Transactional
-    public TransactionTDO captureTransaction(TransactionTDO pTransaction, User pUser) {
+    public Transaction captureTransaction(User pUser, TransactionTDO pTransaction) {
 
         pTransaction.setOperation(Transaction.Operation.CAPTURE);
 
@@ -85,30 +86,29 @@ public class PaymentService {
             Transaction transaction = transactionDao.getTransactionByGuid(pTransaction.getGuid());
             if (transaction != null) {
                 transaction.setOperation(pTransaction.getOperation());
-                return new TransactionTDO(transactionProcessorManager.processing(transaction));
+                return transactionProcessorManager.processing(transaction);
             }
         }
 
-        return new TransactionTDO(transactionProcessorManager.processing(preProcessingChecks(pTransaction, pUser)));
+        return transactionProcessorManager.processing(preProcessingChecks(pUser, pTransaction));
     }
 
-    public TransactionTDO refundTransaction(TransactionTDO pTransaction, User pUser) {
+    public Transaction refundTransaction(User pUser, TransactionTDO pTransaction) {
         return null;
     }
 
-    public TransactionTDO voidTransaction(TransactionTDO pTransaction, User pUser) {
+    public Transaction voidTransaction(User pUser, TransactionTDO pTransaction) {
         return null;
     }
 
     @Transactional
-    public List<TransactionTDO> getAllTransactionsByUser(User pUser) {
-        List<TransactionTDO> transactions = new ArrayList<>();
+    public List<Transaction> getAllTransactionsByUser(User pUser) {
+
+        List<Transaction> transactions = new ArrayList<>();
 
         User user = userDao.getUserById(pUser.getId());
         for (Account account : user.getAccounts()) {
-            for (Transaction transaction : transactionDao.getAllTransactionsByAccount(account)) {
-                transactions.add(new TransactionTDO(transaction));
-            }
+            transactions.addAll(transactionDao.getAllTransactionsByAccount(account));
         }
 
         return transactions;

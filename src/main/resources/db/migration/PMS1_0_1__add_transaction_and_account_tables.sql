@@ -1,11 +1,12 @@
 CREATE TABLE `accounts` (
-  `id`        INTEGER PRIMARY KEY AUTO_INCREMENT,
-  `user_id`   INTEGER NOT NULL,
-  `name`      VARCHAR(56),
-  `score`     BIGINT              DEFAULT 0,
-  `holded`    BIGINT              DEFAULT 0,
-  `is_bloked` TINYINT(1)          DEFAULT 0,
-  FOREIGN KEY (`user_id`) REFERENCES oauth_users (`id`) ON DELETE CASCADE
+  `id`         INTEGER PRIMARY KEY AUTO_INCREMENT,
+  `user_id`    INTEGER NOT NULL,
+  `name`       VARCHAR(56),
+  `score`      BIGINT  NOT NULL    DEFAULT 0,
+  `holded`     BIGINT  NOT NULL    DEFAULT 0,
+  `is_blocked` TINYINT(1)          DEFAULT 0,
+  FOREIGN KEY (`user_id`) REFERENCES oauth_users (`id`)
+    ON DELETE CASCADE
 );
 
 CREATE TABLE `transactions_amounts` (

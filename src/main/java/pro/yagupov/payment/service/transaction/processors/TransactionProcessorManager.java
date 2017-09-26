@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import pro.yagupov.payment.domain.entity.transaction.Transaction;
-import pro.yagupov.payment.security.exception.TransactionProcessingException;
+import pro.yagupov.payment.security.exception.ProcessingException;
 
 /**
  * Created by Yagupov Ruslan on 26.04.17.
@@ -26,7 +26,7 @@ public class TransactionProcessorManager implements TransactionProcessor {
 
 
     @Override
-    public Transaction processing(@NonNull Transaction transaction) throws TransactionProcessingException {
+    public Transaction processing(@NonNull Transaction transaction) throws ProcessingException {
         switch (transaction.getOperation()) {
             case AUTHORIZE:
                 return authorize.processing(transaction);
@@ -37,6 +37,6 @@ public class TransactionProcessorManager implements TransactionProcessor {
             case VOID:
         }
 
-        throw new TransactionProcessingException("Unknown type operation");
+        throw new ProcessingException(ProcessingException.ERROR_UNKNOWN_OPERATION);
     }
 }

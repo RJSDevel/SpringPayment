@@ -22,38 +22,38 @@ public class PaymentController {
     private PaymentService paymentService;
 
 
-    @PreAuthorize(UserGroup.USER)
+    @PreAuthorize(UserGroup.ROLE_USER)
     @RequestMapping(value = "/auth", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     public TransactionTDO authorizeTransaction(User user, @RequestBody TransactionTDO pTransactionTDO) {
-        return paymentService.authorizeTransaction(pTransactionTDO, user);
+        return paymentService.authorizeTransaction(user, pTransactionTDO);
     }
 
-    @PreAuthorize(UserGroup.USER)
+    @PreAuthorize(UserGroup.ROLE_USER)
     @RequestMapping(value = "/capture", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     public TransactionTDO captureTransaction(User user, @RequestBody TransactionTDO pTransactionTDO) {
-        return paymentService.captureTransaction(pTransactionTDO, user);
+        return new TransactionTDO(paymentService.captureTransaction(user, pTransactionTDO));
     }
 
-    @PreAuthorize(UserGroup.USER)
+    @PreAuthorize(UserGroup.ROLE_USER)
     @RequestMapping(value = "/refund", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     public TransactionTDO refundTransaction(User user, @RequestBody TransactionTDO pTransactionTDO) {
-        return paymentService.refundTransaction(pTransactionTDO, user);
+        return new TransactionTDO(paymentService.refundTransaction(user, pTransactionTDO));
     }
 
-    @PreAuthorize(UserGroup.USER)
+    @PreAuthorize(UserGroup.ROLE_USER)
     @RequestMapping(value = "/void", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     public TransactionTDO voidTransaction(User user, @RequestBody TransactionTDO pTransactionTDO) {
-        return paymentService.voidTransaction(pTransactionTDO, user);
+        return new TransactionTDO(paymentService.voidTransaction(user, pTransactionTDO));
     }
 
-    @PreAuthorize(UserGroup.USER)
+    @PreAuthorize(UserGroup.ROLE_USER)
     @RequestMapping(value = "/transactions", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     public List<TransactionTDO> getAllTransactions(User user) {
-        return paymentService.getAllTransactionsByUser(user);
+        return null;
     }
 }

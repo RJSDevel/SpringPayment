@@ -7,8 +7,10 @@ import org.springframework.transaction.annotation.Transactional;
 import pro.yagupov.payment.dao.TransactionDao;
 import pro.yagupov.payment.domain.entity.account.Account;
 import pro.yagupov.payment.domain.entity.transaction.Transaction;
-import pro.yagupov.payment.security.exception.TransactionProcessingException;
+import pro.yagupov.payment.security.exception.ProcessingException;
 import pro.yagupov.payment.service.transaction.processors.TransactionProcessor;
+
+import java.math.BigDecimal;
 
 /**
  * Created by Yagupov Ruslan on 26.04.17.
@@ -21,16 +23,20 @@ public class AuthorizeProcessor implements TransactionProcessor {
     private TransactionDao transactionDao;
 
     @Override
-    public Transaction processing(@NonNull Transaction transaction) throws TransactionProcessingException {
+    public Transaction processing(@NonNull Transaction transaction) throws ProcessingException {
 
-        Account destination = transaction.getDestination();
+        Account source = transaction.getSource();
 
-        long amount = transaction.getAmounts().getAmount();
+        BigDecimal amount = transaction.getAmounts().getAmount();
 
-        //if (amount > destination.getScore()) throw new TransactionProcessingException("");
+        if (source.getScore().subtract(source.getHolded()).compareTo(amount) == -1) {
+            throw new ProcessingException(ProcessingException.ERROR_SOURCE_ACCOUNT_DON_HAVE_NEED_AMOUNT);
+        }
+
+        source.setHolded(source.getHolded().add(amount));
 
         transaction.setStatus(Transaction.Status.AUTHORIZED);
-        destination.setScore(destination.getScore() - amount);
+
         transactionDao.recordTransaction(transaction);
 
         return transaction;

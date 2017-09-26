@@ -7,8 +7,10 @@ import org.springframework.transaction.annotation.Transactional;
 import pro.yagupov.payment.dao.TransactionDao;
 import pro.yagupov.payment.domain.entity.account.Account;
 import pro.yagupov.payment.domain.entity.transaction.Transaction;
-import pro.yagupov.payment.security.exception.TransactionProcessingException;
+import pro.yagupov.payment.security.exception.ProcessingException;
 import pro.yagupov.payment.service.transaction.processors.TransactionProcessor;
+
+import java.math.BigDecimal;
 
 /**
  * Created by Yagupov Ruslan on 26.04.17.
@@ -21,17 +23,36 @@ public class CaptureProcessor implements TransactionProcessor {
     private TransactionDao transactionDao;
 
     @Override
-    public Transaction processing(@NonNull Transaction transaction) throws TransactionProcessingException {
+    public Transaction processing(@NonNull Transaction transaction) throws ProcessingException {
 
-        Account sourse = transaction.getSource();
-        long amount = transaction.getAmounts().getAmount();
+        if (transaction.getStatus() == Transaction.Status.CAPTURED) {
+            throw new ProcessingException(ProcessingException.ERROR_TRANSACTION_ALREADY_DONE);
+        }
 
-        if (sourse.getScore() >= amount) throw new TransactionProcessingException("Not enough money");
+        Account source = transaction.getSource();
+        Account destination = transaction.getDestination();
 
-        transaction.setStatus(Transaction.Status.CAPTURED);
-        sourse.setScore(sourse.getScore() - amount);
+        BigDecimal amount = transaction.getAmounts().getAmount();
 
-        transactionDao.updateTransaction(transaction);
+        if (source.getScore().compareTo(amount) == -1) {
+            throw new ProcessingException(ProcessingException.ERROR_SOURCE_ACCOUNT_DON_HAVE_NEED_AMOUNT, transaction.getStatus() != null);
+        }
+
+        source.setScore(source.getScore().subtract(amount));
+
+        if (transaction.getStatus() != null && transaction.getStatus() == Transaction.Status.AUTHORIZED) {
+            source.setHolded(source.getHolded().subtract(amount));
+        }
+
+        destination.setScore(destination.getScore().add(amount));
+
+        if (transaction.getStatus() == null) {
+            transaction.setStatus(Transaction.Status.CAPTURED);
+            transactionDao.recordTransaction(transaction);
+        } else {
+            transaction.setStatus(Transaction.Status.CAPTURED);
+            transactionDao.updateTransaction(transaction);
+        }
 
         return transaction;
     }

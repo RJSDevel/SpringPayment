@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import pro.yagupov.payment.domain.entity.transaction.Transaction;
 
@@ -14,6 +15,7 @@ import java.util.Objects;
  * Created by Yagupov Ruslan on 19.04.17.
  */
 @Getter
+@NoArgsConstructor
 public class TransactionTDO {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -59,9 +61,6 @@ public class TransactionTDO {
 
     private long destination;
 
-
-    public TransactionTDO() {
-    }
 
     public TransactionTDO(Transaction pTransaction) {
         guid = pTransaction.getGuid();

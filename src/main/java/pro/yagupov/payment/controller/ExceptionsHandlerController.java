@@ -2,7 +2,9 @@ package pro.yagupov.payment.controller;
 
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import pro.yagupov.payment.security.exception.TransactionProcessingException;
+import org.springframework.web.bind.annotation.ResponseBody;
+import pro.yagupov.payment.security.exception.PaymentException;
+import pro.yagupov.payment.security.exception.ProcessingException;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -12,8 +14,9 @@ import javax.servlet.http.HttpServletRequest;
 @ControllerAdvice
 public class ExceptionsHandlerController {
 
-    @ExceptionHandler(value = {TransactionProcessingException.class})
-    public Exception handleTransactionProcessingException(HttpServletRequest req, TransactionProcessingException exception) {
-        return exception;
+    @ExceptionHandler(value = {PaymentException.class})
+    @ResponseBody
+    public PaymentException.Error handleTransactionProcessingException(HttpServletRequest req, PaymentException exception) {
+        return exception.getError();
     }
 }

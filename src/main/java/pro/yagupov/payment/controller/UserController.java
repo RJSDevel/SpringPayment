@@ -25,14 +25,14 @@ public class UserController {
     private UserService userService;
 
     @RequestMapping(value = "/user/registration", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    void createUser(@RequestBody Login login) {
+    void registration(@RequestBody Login login) {
         userService.createUser(login);
     }
 
-    @PreAuthorize(UserGroup.USER)
+    @PreAuthorize(UserGroup.ROLE_USER)
     @RequestMapping(value = "/user", method = RequestMethod.GET)
     @ResponseBody
-    public UserDetails getUserInfo(Principal principal) {
+    public UserDetails userInfo(Principal principal) {
         return userDetailsService.loadUserByUsername(principal.getName());
     }
 }

@@ -1,17 +1,23 @@
 package pro.yagupov.payment.domain.entity.account;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.util.StringUtils;
 import pro.yagupov.payment.domain.entity.auth.User;
 import pro.yagupov.payment.domain.entity.transaction.Transaction;
+import pro.yagupov.payment.domain.tdo.AccountTDO;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Created by Yagupov Ruslan on 18.04.17.
  */
 @Data
 @Entity
+@NoArgsConstructor
 @Table(name = "accounts")
 public class Account {
 
@@ -29,11 +35,14 @@ public class Account {
     @Column(length = 56)
     private String name;
 
-    @Column
-    private long score;
+    @Column(precision = 8, scale = 2, nullable = false)
+    private BigDecimal score = new BigDecimal(0);
 
-    @Column
-    private long holded;
+    @Column(precision = 8, scale = 2, nullable = false)
+    private BigDecimal holded = new BigDecimal(0);
+
+    @Column(name = "is_blocked")
+    private boolean isBlocked;
 
     @OneToMany(mappedBy = "source", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Transaction> outTransactions;
@@ -41,4 +50,8 @@ public class Account {
     @OneToMany(mappedBy = "destination", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Transaction> receiveTransactions;
 
+
+    public Account(AccountTDO pAccountTDO) {
+        if (!Objects.isNull(pAccountTDO) && !StringUtils.isEmpty(pAccountTDO.getName())) name = pAccountTDO.getName();
+    }
 }

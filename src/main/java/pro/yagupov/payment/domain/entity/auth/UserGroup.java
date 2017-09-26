@@ -14,7 +14,7 @@ import java.util.List;
 public class UserGroup implements GrantedAuthority {
 
     public static final String
-        USER = "#payment.clientHasRole('USER')";
+            ROLE_USER = "#payment.clientHasRole('USER')";
 
     @Id
     @Column(name = "id")
