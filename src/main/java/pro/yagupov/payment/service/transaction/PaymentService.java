@@ -14,6 +14,7 @@ import pro.yagupov.payment.domain.entity.auth.User;
 import pro.yagupov.payment.domain.entity.transaction.Transaction;
 import pro.yagupov.payment.domain.tdo.AmountsTDO;
 import pro.yagupov.payment.domain.tdo.TransactionTDO;
+import pro.yagupov.payment.security.exception.AccountException;
 import pro.yagupov.payment.security.exception.PaymentException;
 import pro.yagupov.payment.security.exception.ProcessingException;
 import pro.yagupov.payment.service.transaction.processors.TransactionProcessorManager;
@@ -53,15 +54,30 @@ public class PaymentService {
                 }
         });
 
-
         Account source = accountDao.getAccountByUserAndId(pTransaction.getSource(), pUser);
         if (source == Account.NOT_FOUND) {
-            throw new ProcessingException(ProcessingException.ERROR_SOURCE_ACCOUNT_DOESNT_BELONG_USER);
+            throw new ProcessingException(AccountException.ERROR_SOURCE_ACCOUNT_DOESNT_BELONG_USER);
+        }
+
+        if (source.getIsBlocked()) {
+            throw new ProcessingException(AccountException.ERROR_ACCOUNT_IS_BLOCKED, AccountException.SOURCE);
+        }
+
+        if (!source.getIsActive()) {
+            throw new ProcessingException(AccountException.ERROR_ACCOUNT_IS_NOT_ACTIVE, AccountException.DESTINATION);
         }
 
         Account destination = accountDao.getAccountById(pTransaction.getDestination());
         if (destination == Account.NOT_FOUND) {
-            throw new ProcessingException(ProcessingException.ERROR_DESTINATION_ACCOUNT_DOESNT_EXISTS);
+            throw new AccountException(AccountException.ERROR_DESTINATION_ACCOUNT_DOESNT_EXISTS);
+        }
+
+        if (destination.getIsBlocked()) {
+            throw new ProcessingException(AccountException.ERROR_ACCOUNT_IS_BLOCKED, AccountException.DESTINATION);
+        }
+
+        if (!destination.getIsActive()) {
+            throw new ProcessingException(AccountException.ERROR_ACCOUNT_IS_NOT_ACTIVE, AccountException.DESTINATION);
         }
 
         Transaction transaction = new Transaction(pTransaction, source, destination);

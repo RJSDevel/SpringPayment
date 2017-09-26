@@ -34,7 +34,7 @@ public class AuthorizeProcessor implements TransactionProcessor {
         }
 
         if (source.getScore().subtract(source.getHold()).compareTo(amount) == -1) {
-            throw new ProcessingException(ProcessingException.ERROR_SOURCE_ACCOUNT_DON_HAVE_NEED_AMOUNT);
+            throw new ProcessingException(ProcessingException.ERROR_SOURCE_ACCOUNT_DO_NOT_HAVE_NEED_AMOUNT);
         }
 
         source.setHold(source.getHold().add(amount));

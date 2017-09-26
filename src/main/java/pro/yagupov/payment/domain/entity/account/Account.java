@@ -1,6 +1,7 @@
 package pro.yagupov.payment.domain.entity.account;
 
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.util.StringUtils;
 import pro.yagupov.payment.domain.entity.auth.User;
@@ -17,6 +18,7 @@ import java.util.Objects;
  */
 @Data
 @Entity
+@Getter
 @NoArgsConstructor
 @Table(name = "accounts")
 public class Account {
@@ -41,11 +43,11 @@ public class Account {
     @Column(precision = 8, scale = 2, nullable = false)
     private BigDecimal hold = new BigDecimal(0);
 
-    @Column(name = "is_active")
-    private boolean isActive;
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive = true;
 
-    @Column(name = "is_blocked")
-    private boolean isBlocked;
+    @Column(name = "is_blocked", nullable = false)
+    private Boolean isBlocked = false;
 
     @OneToMany(mappedBy = "source", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Transaction> outTransactions;

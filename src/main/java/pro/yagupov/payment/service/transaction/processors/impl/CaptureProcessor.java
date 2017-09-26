@@ -39,7 +39,7 @@ public class CaptureProcessor implements TransactionProcessor {
         }
 
         if (source.getScore().compareTo(amount) == -1) {
-            throw new ProcessingException(ProcessingException.ERROR_SOURCE_ACCOUNT_DON_HAVE_NEED_AMOUNT, transaction.getStatus() != null);
+            throw new ProcessingException(ProcessingException.ERROR_SOURCE_ACCOUNT_DO_NOT_HAVE_NEED_AMOUNT, transaction.getStatus() != null);
         }
 
         source.setScore(source.getScore().subtract(amount));

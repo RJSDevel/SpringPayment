@@ -8,11 +8,9 @@ public class ProcessingException extends PaymentException {
     public static final Error
             ERROR_UNKNOWN_OPERATION = new Error(1000, "Unknown operation"),
             ERROR_SOURCE_DESTINATION_EQUALS = new Error(1001, "Source account and destination accounts can't be equal"),
-            ERROR_SOURCE_ACCOUNT_DOESNT_BELONG_USER = new Error(1002, "Source account doesn't belong user"),
-            ERROR_DESTINATION_ACCOUNT_DOESNT_EXISTS = new Error(1003, "Destination account doesn't exists"),
             ERROR_AMOUNT_IS_NOT_EQUALS_ORDER_PLUS_TIPS = new Error(1004, "Amount isn't equal order + tips"),
             ERROR_TRANSACTION_ALREADY_DONE = new Error(1005, "Transaction already done"),
-            ERROR_SOURCE_ACCOUNT_DON_HAVE_NEED_AMOUNT = new Error(1006, "Source account don't have need amount");
+            ERROR_SOURCE_ACCOUNT_DO_NOT_HAVE_NEED_AMOUNT = new Error(1006, "Source account don't have need amount");
 
     
     public ProcessingException(Error error) {
