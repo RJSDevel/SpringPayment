@@ -32,6 +32,9 @@ public class AmountsTDO {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private BigDecimal cashbackAmount = new BigDecimal(0);
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String comment;
+
 
     AmountsTDO(Amounts pAmounts) {
         guid = pAmounts.getGuid();
@@ -40,5 +43,6 @@ public class AmountsTDO {
         orderAmount = pAmounts.getOrderAmount();
         tipAmount = pAmounts.getTipAmount();
         cashbackAmount = pAmounts.getCashbackAmount();
+        comment = pAmounts.getComment();
     }
 }

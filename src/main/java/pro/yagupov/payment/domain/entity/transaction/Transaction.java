@@ -1,21 +1,18 @@
 package pro.yagupov.payment.domain.entity.transaction;
 
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.UpdateTimestamp;
+import lombok.*;
+import org.hibernate.annotations.*;
+import org.hibernate.annotations.Generated;
 import pro.yagupov.payment.domain.entity.account.Account;
-import pro.yagupov.payment.domain.tdo.AmountsTDO;
 import pro.yagupov.payment.domain.tdo.TransactionTDO;
 
 import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 
 /**
@@ -26,6 +23,16 @@ import java.util.function.Consumer;
 @Entity
 @Table(name = "transactions")
 public class Transaction {
+
+    @Entity
+    @Table(name = "transactions_numbers")
+    @Getter
+    private static class Number {
+        @Id
+        @Column
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        private long number;
+    }
 
     public enum Operation {
         AUTHORIZE,
@@ -47,6 +54,7 @@ public class Transaction {
         VOIDED,
     }
 
+
     @Id
     @Setter(AccessLevel.NONE)
     @GeneratedValue(generator = "uuid2")
@@ -54,11 +62,11 @@ public class Transaction {
     @Column(updatable = false, unique = true, length = 36)
     private String guid;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "parent")
     private Transaction parent;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "child")
     private Transaction child;
 

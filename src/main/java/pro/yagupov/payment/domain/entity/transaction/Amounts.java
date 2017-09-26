@@ -53,6 +53,9 @@ public class Amounts {
     @Column(name = "cashback_amount", updatable = false, precision = 19, scale = 2)
     private BigDecimal cashbackAmount;
 
+    @Column(updatable = false)
+    private String comment;
+
 
     Amounts(AmountsTDO pAmounts, Transaction pTransaction) {
         type = pAmounts.getType();
@@ -61,5 +64,6 @@ public class Amounts {
         orderAmount = pAmounts.getOrderAmount();
         tipAmount = pAmounts.getTipAmount();
         cashbackAmount = pAmounts.getCashbackAmount();
+        comment = pAmounts.getComment();
     }
 }
