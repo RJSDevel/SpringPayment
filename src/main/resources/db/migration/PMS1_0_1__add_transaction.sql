@@ -1,11 +1,11 @@
 CREATE TABLE `accounts` (
-  `id`         INTEGER PRIMARY KEY        AUTO_INCREMENT,
+  `id`         INTEGER PRIMARY KEY               AUTO_INCREMENT,
   `user_id`    INTEGER        NOT NULL,
   `name`       VARCHAR(56),
-  `score`      NUMERIC(19, 2) NOT NULL    DEFAULT 0,
-  `hold`       NUMERIC(19, 2) NOT NULL    DEFAULT 0,
-  `is_active`  TINYINT(1)                 DEFAULT 1,
-  `is_blocked` TINYINT(1)                 DEFAULT 0,
+  `score`      NUMERIC(19, 2) NOT NULL           DEFAULT 0,
+  `hold`       NUMERIC(19, 2) NOT NULL           DEFAULT 0,
+  `is_active`  TINYINT(1)     NOT NULL           DEFAULT 1,
+  `is_blocked` TINYINT(1)     NOT NULL           DEFAULT 0,
   FOREIGN KEY (`user_id`) REFERENCES oauth_users (`id`)
     ON DELETE CASCADE
 );

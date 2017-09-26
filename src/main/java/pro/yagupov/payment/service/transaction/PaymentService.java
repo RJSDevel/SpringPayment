@@ -14,6 +14,7 @@ import pro.yagupov.payment.domain.entity.auth.User;
 import pro.yagupov.payment.domain.entity.transaction.Transaction;
 import pro.yagupov.payment.domain.tdo.AmountsTDO;
 import pro.yagupov.payment.domain.tdo.TransactionTDO;
+import pro.yagupov.payment.security.exception.PaymentException;
 import pro.yagupov.payment.security.exception.ProcessingException;
 import pro.yagupov.payment.service.transaction.processors.TransactionProcessorManager;
 
@@ -77,14 +78,14 @@ public class PaymentService {
     }
 
     @Transactional
-    @Retryable(backoff = @Backoff(delay = 2000))
+    @Retryable(backoff = @Backoff(delay = 2000), exclude = {PaymentException.class})
     public TransactionTDO authorizeTransaction(User pUser, TransactionTDO pTransaction) {
         pTransaction.setOperation(Transaction.Operation.AUTHORIZE);
         return new TransactionTDO(transactionProcessorManager.processing(preProcessingChecks(pUser, pTransaction)));
     }
 
     @Transactional
-    @Retryable(backoff = @Backoff(delay = 2000))
+    @Retryable(backoff = @Backoff(delay = 2000), exclude = {PaymentException.class})
     public Transaction captureTransaction(User pUser, TransactionTDO pTransaction) {
 
         pTransaction.setOperation(Transaction.Operation.CAPTURE);
@@ -101,19 +102,19 @@ public class PaymentService {
     }
 
     @Transactional
-    @Retryable(backoff = @Backoff(delay = 2000))
+    @Retryable(backoff = @Backoff(delay = 2000), exclude = {PaymentException.class})
     public Transaction refundTransaction(User pUser, TransactionTDO pTransaction) {
         return null;
     }
 
     @Transactional
-    @Retryable(backoff = @Backoff(delay = 2000))
+    @Retryable(backoff = @Backoff(delay = 2000), exclude = {PaymentException.class})
     public Transaction voidTransaction(User pUser, TransactionTDO pTransaction) {
         return null;
     }
 
     @Transactional
-    @Retryable(backoff = @Backoff(delay = 2000))
+    @Retryable(backoff = @Backoff(delay = 2000), exclude = {PaymentException.class})
     public List<Transaction> getAllTransactionsByUser(User pUser) {
 
         List<Transaction> transactions = new ArrayList<>();
