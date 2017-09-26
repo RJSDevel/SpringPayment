@@ -12,7 +12,6 @@ import pro.yagupov.payment.security.exception.ProcessingException;
 import pro.yagupov.payment.service.transaction.processors.TransactionProcessor;
 
 import java.math.BigDecimal;
-import java.util.function.Consumer;
 
 /**
  * Created by Yagupov Ruslan on 26.04.17.
@@ -34,11 +33,11 @@ public class AuthorizeProcessor implements TransactionProcessor {
             amount = amount.add(amounts.getAmount());
         }
 
-        if (source.getScore().subtract(source.getHolded()).compareTo(amount) == -1) {
+        if (source.getScore().subtract(source.getHold()).compareTo(amount) == -1) {
             throw new ProcessingException(ProcessingException.ERROR_SOURCE_ACCOUNT_DON_HAVE_NEED_AMOUNT);
         }
 
-        source.setHolded(source.getHolded().add(amount));
+        source.setHold(source.getHold().add(amount));
 
         transaction.setStatus(Transaction.Status.AUTHORIZED);
 

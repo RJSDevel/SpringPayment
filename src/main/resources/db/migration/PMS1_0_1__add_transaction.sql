@@ -1,17 +1,19 @@
 CREATE TABLE `accounts` (
-  `id`         INTEGER PRIMARY KEY AUTO_INCREMENT,
-  `user_id`    INTEGER NOT NULL,
+  `id`         INTEGER PRIMARY KEY        AUTO_INCREMENT,
+  `user_id`    INTEGER        NOT NULL,
   `name`       VARCHAR(56),
-  `score`      BIGINT  NOT NULL    DEFAULT 0,
-  `holded`     BIGINT  NOT NULL    DEFAULT 0,
-  `is_blocked` TINYINT(1)          DEFAULT 0,
-  FOREIGN KEY (`user_id`) REFERENCES oauth_users (`id`) ON DELETE CASCADE
+  `score`      NUMERIC(19, 2) NOT NULL    DEFAULT 0,
+  `hold`       NUMERIC(19, 2) NOT NULL    DEFAULT 0,
+  `is_active`  TINYINT(1)                 DEFAULT 1,
+  `is_blocked` TINYINT(1)                 DEFAULT 0,
+  FOREIGN KEY (`user_id`) REFERENCES oauth_users (`id`)
+    ON DELETE CASCADE
 );
 
 CREATE TABLE `transactions` (
   `guid`        VARCHAR(36) PRIMARY KEY UNIQUE                 NOT NULL,
-  `parent`      INTEGER                                        NULL,
-  `child`       INTEGER                                        NULL,
+  `parent`      VARCHAR(36)                                    NULL,
+  `child`       VARCHAR(36)                                    NULL,
   `operation`   TINYINT(1)                                     NOT NULL,
   `status`      TINYINT(1)                                     NOT NULL,
   `comment`     VARCHAR(255)                                   NULL,
@@ -24,12 +26,12 @@ CREATE TABLE `transactions` (
 );
 
 CREATE TABLE `amounts` (
-  `id`              INTEGER PRIMARY KEY AUTO_INCREMENT,
-  `transaction_guid`  VARCHAR(36) NOT NULL,
-  `type`            TINYINT(1) NOT NULL,
-  `amount`          BIGINT              DEFAULT 0,
-  `order_amount`    BIGINT              DEFAULT 0,
-  `tip_amount`      BIGINT              DEFAULT 0,
-  `cashback_amount` BIGINT              DEFAULT 0,
+  `guid`             VARCHAR(36) PRIMARY KEY UNIQUE                 NOT NULL,
+  `transaction_guid` VARCHAR(36)                                    NOT NULL,
+  `type`             TINYINT(1)                                     NOT NULL,
+  `amount`           NUMERIC(19, 2)                                 NOT NULL                 DEFAULT 0,
+  `order_amount`     NUMERIC(19, 2)                                 NOT NULL                 DEFAULT 0,
+  `tip_amount`       NUMERIC(19, 2)                                 NOT NULL                 DEFAULT 0,
+  `cashback_amount`  NUMERIC(19, 2)                                 NOT NULL                 DEFAULT 0,
   FOREIGN KEY (`transaction_guid`) REFERENCES transactions (`guid`)
 );

@@ -33,6 +33,6 @@ public class AccountTDO {
         id = pAccount.getId();
         name = pAccount.getName();
         score = pAccount.getScore();
-        holded = pAccount.getHolded();
+        holded = pAccount.getHold();
     }
 }

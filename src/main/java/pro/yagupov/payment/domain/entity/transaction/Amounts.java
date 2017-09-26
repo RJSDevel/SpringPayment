@@ -1,7 +1,10 @@
 package pro.yagupov.payment.domain.entity.transaction;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.GenericGenerator;
 import pro.yagupov.payment.domain.tdo.AmountsTDO;
 
 import javax.persistence.*;
@@ -24,9 +27,11 @@ public class Amounts {
     }
 
     @Id
-    @Column
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    @Setter(AccessLevel.NONE)
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(updatable = false, unique = true, length = 36)
+    private String guid;
 
     @ManyToOne
     @JoinColumn(name = "transaction_guid", updatable = false)
@@ -39,13 +44,13 @@ public class Amounts {
     @Column(updatable = false)
     private BigDecimal amount;
 
-    @Column(name = "order_amount", updatable = false, precision = 8, scale = 2)
+    @Column(name = "order_amount", updatable = false, precision = 19, scale = 2)
     private BigDecimal orderAmount;
 
-    @Column(name = "tip_amount", updatable = false, precision = 8, scale = 2)
+    @Column(name = "tip_amount", updatable = false, precision = 19, scale = 2)
     private BigDecimal tipAmount;
 
-    @Column(name = "cashback_amount", updatable = false, precision = 8, scale = 2)
+    @Column(name = "cashback_amount", updatable = false, precision = 19, scale = 2)
     private BigDecimal cashbackAmount;
 
 

@@ -45,7 +45,7 @@ public class CaptureProcessor implements TransactionProcessor {
         source.setScore(source.getScore().subtract(amount));
 
         if (transaction.getStatus() != null && transaction.getStatus() == Transaction.Status.AUTHORIZED) {
-            source.setHolded(source.getHolded().subtract(amount));
+            source.setHold(source.getHold().subtract(amount));
         }
 
         destination.setScore(destination.getScore().add(amount));

@@ -39,7 +39,10 @@ public class Account {
     private BigDecimal score = new BigDecimal(0);
 
     @Column(precision = 8, scale = 2, nullable = false)
-    private BigDecimal holded = new BigDecimal(0);
+    private BigDecimal hold = new BigDecimal(0);
+
+    @Column(name = "is_active")
+    private boolean isActive;
 
     @Column(name = "is_blocked")
     private boolean isBlocked;

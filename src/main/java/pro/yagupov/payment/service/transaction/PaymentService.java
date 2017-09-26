@@ -2,6 +2,8 @@ package pro.yagupov.payment.service.transaction;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pro.yagupov.payment.dao.AccountDao;
@@ -17,7 +19,6 @@ import pro.yagupov.payment.service.transaction.processors.TransactionProcessorMa
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * Created by Yagupov Ruslan on 18.04.17.
@@ -75,12 +76,14 @@ public class PaymentService {
         return transaction;
     }
 
+    @Retryable(backoff = @Backoff(delay = 2000))
     @Transactional
     public TransactionTDO authorizeTransaction(User pUser, TransactionTDO pTransaction) {
         pTransaction.setOperation(Transaction.Operation.AUTHORIZE);
         return new TransactionTDO(transactionProcessorManager.processing(preProcessingChecks(pUser, pTransaction)));
     }
 
+    @Retryable(backoff = @Backoff(delay = 2000))
     @Transactional
     public Transaction captureTransaction(User pUser, TransactionTDO pTransaction) {
 
@@ -97,14 +100,19 @@ public class PaymentService {
         return transactionProcessorManager.processing(preProcessingChecks(pUser, pTransaction));
     }
 
+    @Retryable(backoff = @Backoff(delay = 2000))
+    @Transactional
     public Transaction refundTransaction(User pUser, TransactionTDO pTransaction) {
         return null;
     }
 
+    @Retryable(backoff = @Backoff(delay = 2000))
+    @Transactional
     public Transaction voidTransaction(User pUser, TransactionTDO pTransaction) {
         return null;
     }
 
+    @Retryable(backoff = @Backoff(delay = 2000))
     @Transactional
     public List<Transaction> getAllTransactionsByUser(User pUser) {
 

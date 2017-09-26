@@ -17,7 +17,7 @@ import java.math.BigDecimal;
 public class AmountsTDO {
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private long id;
+    private String guid;
 
     @JsonProperty(required = true)
     @JsonFormat(shape = JsonFormat.Shape.NUMBER)
@@ -34,7 +34,7 @@ public class AmountsTDO {
 
 
     AmountsTDO(Amounts pAmounts) {
-        id = pAmounts.getId();
+        guid = pAmounts.getGuid();
         type = pAmounts.getType();
         amount = pAmounts.getAmount();
         orderAmount = pAmounts.getOrderAmount();
