@@ -41,6 +41,10 @@ public class Amounts {
     @Enumerated(EnumType.ORDINAL)
     private PaymentType type;
 
+    @ManyToOne
+    @JoinColumn(nullable = false, updatable = false, name = "currency")
+    private Currency currency;
+
     @Column(updatable = false)
     private BigDecimal amount;
 
@@ -57,10 +61,11 @@ public class Amounts {
     private String comment;
 
 
-    Amounts(AmountsTDO pAmounts, Transaction pTransaction) {
+    public Amounts(AmountsTDO pAmounts, Transaction pTransaction, Currency pCurrency) {
         type = pAmounts.getType();
         transaction = pTransaction;
         amount = pAmounts.getAmount();
+        currency = pCurrency;
         orderAmount = pAmounts.getOrderAmount();
         tipAmount = pAmounts.getTipAmount();
         cashbackAmount = pAmounts.getCashbackAmount();

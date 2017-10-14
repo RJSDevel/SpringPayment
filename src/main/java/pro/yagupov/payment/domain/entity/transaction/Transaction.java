@@ -103,7 +103,7 @@ public class Transaction {
     private Account destination;
 
 
-    public Transaction(TransactionTDO pTransaction, Account pSource, Account pDestination) {
+    public Transaction(TransactionTDO pTransaction, Account pSource, Account pDestination, List<Amounts> pAmounts) {
 
         switch (pTransaction.getOperation()) {
             case AUTHORIZE:
@@ -114,12 +114,7 @@ public class Transaction {
 
         operation = pTransaction.getOperation();
         status = pTransaction.getStatus();
-
-        if (amounts == null) amounts = new ArrayList<>();
-
-        pTransaction
-                .getAmounts()
-                .forEach(pAmountsTDO -> amounts.add(new Amounts(pAmountsTDO, this)));
+        amounts = pAmounts;
 
         comment = pTransaction.getComment();
 

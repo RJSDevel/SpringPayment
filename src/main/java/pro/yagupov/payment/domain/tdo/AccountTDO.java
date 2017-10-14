@@ -20,6 +20,8 @@ public class AccountTDO {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String name;
 
+    private String currency;
+
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private BigDecimal score;
@@ -32,6 +34,7 @@ public class AccountTDO {
     public AccountTDO(Account pAccount) {
         id = pAccount.getId();
         name = pAccount.getName();
+        currency = pAccount.getCurrency().getCode();
         score = pAccount.getScore();
         holded = pAccount.getHold();
     }

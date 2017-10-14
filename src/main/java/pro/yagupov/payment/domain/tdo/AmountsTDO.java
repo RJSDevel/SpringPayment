@@ -24,6 +24,9 @@ public class AmountsTDO {
     private Amounts.PaymentType type;
 
     @JsonProperty(required = true)
+    private String currency;
+
+    @JsonProperty(required = true)
     private BigDecimal amount;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private BigDecimal orderAmount = new BigDecimal(0);
@@ -39,6 +42,7 @@ public class AmountsTDO {
     AmountsTDO(Amounts pAmounts) {
         guid = pAmounts.getGuid();
         type = pAmounts.getType();
+        currency = pAmounts.getCurrency().getCode();
         amount = pAmounts.getAmount();
         orderAmount = pAmounts.getOrderAmount();
         tipAmount = pAmounts.getTipAmount();

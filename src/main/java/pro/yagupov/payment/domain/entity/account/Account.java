@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.util.StringUtils;
+import pro.yagupov.payment.domain.entity.transaction.Currency;
 import pro.yagupov.payment.domain.entity.auth.User;
 import pro.yagupov.payment.domain.entity.transaction.Transaction;
 import pro.yagupov.payment.domain.tdo.AccountTDO;
@@ -49,6 +50,10 @@ public class Account {
     @Column(name = "is_blocked", nullable = false)
     private Boolean isBlocked = false;
 
+    @ManyToOne
+    @JoinColumn(nullable = false, updatable = false, name = "currency")
+    private Currency currency;
+
     @OneToMany(mappedBy = "source", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Transaction> outTransactions;
 
@@ -56,7 +61,8 @@ public class Account {
     private List<Transaction> receiveTransactions;
 
 
-    public Account(AccountTDO pAccountTDO) {
+    public Account(AccountTDO pAccountTDO, Currency pCurrency) {
         if (!Objects.isNull(pAccountTDO) && !StringUtils.isEmpty(pAccountTDO.getName())) name = pAccountTDO.getName();
+        currency = pCurrency;
     }
 }

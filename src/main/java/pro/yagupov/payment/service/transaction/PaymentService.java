@@ -7,10 +7,12 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pro.yagupov.payment.dao.AccountDao;
+import pro.yagupov.payment.dao.CurrencyDao;
 import pro.yagupov.payment.dao.TransactionDao;
 import pro.yagupov.payment.dao.UserDao;
 import pro.yagupov.payment.domain.entity.account.Account;
 import pro.yagupov.payment.domain.entity.auth.User;
+import pro.yagupov.payment.domain.entity.transaction.Amounts;
 import pro.yagupov.payment.domain.entity.transaction.Transaction;
 import pro.yagupov.payment.domain.tdo.AmountsTDO;
 import pro.yagupov.payment.domain.tdo.TransactionTDO;
@@ -40,6 +42,10 @@ public class PaymentService {
     @Autowired
     private TransactionProcessorManager transactionProcessorManager;
 
+    @Autowired
+    private CurrencyDao mCurrencyDao;
+
+
     private Transaction preProcessingChecks(User pUser, TransactionTDO pTransaction) {
 
         if (pTransaction.getSource() == pTransaction.getDestination()) {
@@ -56,15 +62,15 @@ public class PaymentService {
 
         Account source = accountDao.getAccountByUserAndId(pTransaction.getSource(), pUser);
         if (source == Account.NOT_FOUND) {
-            throw new ProcessingException(AccountException.ERROR_SOURCE_ACCOUNT_DOESNT_BELONG_USER);
+            throw new AccountException(AccountException.ERROR_SOURCE_ACCOUNT_DOESNT_BELONG_USER);
         }
 
         if (source.getIsBlocked()) {
-            throw new ProcessingException(AccountException.ERROR_ACCOUNT_IS_BLOCKED, AccountException.SOURCE);
+            throw new AccountException(AccountException.ERROR_ACCOUNT_IS_BLOCKED, AccountException.SOURCE);
         }
 
         if (!source.getIsActive()) {
-            throw new ProcessingException(AccountException.ERROR_ACCOUNT_IS_NOT_ACTIVE, AccountException.DESTINATION);
+            throw new AccountException(AccountException.ERROR_ACCOUNT_IS_NOT_ACTIVE, AccountException.DESTINATION);
         }
 
         Account destination = accountDao.getAccountById(pTransaction.getDestination());
@@ -73,14 +79,22 @@ public class PaymentService {
         }
 
         if (destination.getIsBlocked()) {
-            throw new ProcessingException(AccountException.ERROR_ACCOUNT_IS_BLOCKED, AccountException.DESTINATION);
+            throw new AccountException(AccountException.ERROR_ACCOUNT_IS_BLOCKED, AccountException.DESTINATION);
         }
 
         if (!destination.getIsActive()) {
-            throw new ProcessingException(AccountException.ERROR_ACCOUNT_IS_NOT_ACTIVE, AccountException.DESTINATION);
+            throw new AccountException(AccountException.ERROR_ACCOUNT_IS_NOT_ACTIVE, AccountException.DESTINATION);
         }
 
-        Transaction transaction = new Transaction(pTransaction, source, destination);
+
+        List<Amounts> convertedAmounts = new ArrayList<>();
+
+        Transaction transaction = new Transaction(pTransaction, source, destination, convertedAmounts);
+        amounts
+                .forEach(pAmountsTDO -> {
+                    convertedAmounts.add(new Amounts(pAmountsTDO, transaction, mCurrencyDao.getCountryByCode(pAmountsTDO.getCurrency())));
+                });
+
 
         if (StringUtils.isNotEmpty(pTransaction.getParent())) {
             transaction.setParent(transactionDao.getTransactionByGuid(pTransaction.getParent()));
@@ -114,7 +128,7 @@ public class PaymentService {
             }
         }
 
-        return transactionProcessorManager.processing(preProcessingChecks(pUser, pTransaction));
+        throw new ProcessingException(ProcessingException.ERROR_TRANSACTION_DOESNT_AUTHORIZED);
     }
 
     @Transactional

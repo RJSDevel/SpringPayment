@@ -6,9 +6,12 @@ CREATE TABLE `accounts` (
   `hold`       NUMERIC(19, 2) NOT NULL           DEFAULT 0,
   `is_active`  TINYINT(1)     NOT NULL           DEFAULT 1,
   `is_blocked` TINYINT(1)     NOT NULL           DEFAULT 0,
-  FOREIGN KEY (`user_id`) REFERENCES oauth_users (`id`)
-    ON DELETE CASCADE
-);
+  `currency`   INTEGER        NOT NULL,
+  FOREIGN KEY (`user_id`) REFERENCES oauth_users (`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`currency`) REFERENCES currency (`id`) ON DELETE CASCADE
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8;
 
 CREATE TABLE `transactions` (
   `guid`        VARCHAR(36) PRIMARY KEY UNIQUE                         NOT NULL,
@@ -23,16 +26,22 @@ CREATE TABLE `transactions` (
   `destination` INTEGER                                                NOT NULL,
   FOREIGN KEY (`source`) REFERENCES accounts (`id`),
   FOREIGN KEY (`destination`) REFERENCES accounts (`id`)
-);
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8;
 
 CREATE TABLE `amounts` (
   `guid`             VARCHAR(36) PRIMARY KEY UNIQUE                 NOT NULL,
   `transaction_guid` VARCHAR(36)                                    NOT NULL,
   `type`             TINYINT(1)                                     NOT NULL,
+  `currency`         INTEGER                                        NOT NULL,
   `amount`           NUMERIC(19, 2)                                 NOT NULL                 DEFAULT 0,
   `order_amount`     NUMERIC(19, 2)                                 NOT NULL                 DEFAULT 0,
   `tip_amount`       NUMERIC(19, 2)                                 NOT NULL                 DEFAULT 0,
   `cashback_amount`  NUMERIC(19, 2)                                 NOT NULL                 DEFAULT 0,
   `comment`          VARCHAR(56)                                    NULL,
-  FOREIGN KEY (`transaction_guid`) REFERENCES transactions (`guid`)
-);
+  FOREIGN KEY (`transaction_guid`) REFERENCES transactions (`guid`),
+  FOREIGN KEY (`currency`) REFERENCES currency (`id`) ON DELETE CASCADE
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8;
