@@ -12,9 +12,8 @@ import pro.yagupov.payment.dao.TransactionDao;
 import pro.yagupov.payment.dao.UserDao;
 import pro.yagupov.payment.domain.entity.account.Account;
 import pro.yagupov.payment.domain.entity.auth.User;
-import pro.yagupov.payment.domain.entity.transaction.Amounts;
+import pro.yagupov.payment.domain.entity.transaction.Currency;
 import pro.yagupov.payment.domain.entity.transaction.Transaction;
-import pro.yagupov.payment.domain.tdo.AmountsTDO;
 import pro.yagupov.payment.domain.tdo.TransactionTDO;
 import pro.yagupov.payment.security.exception.AccountException;
 import pro.yagupov.payment.security.exception.PaymentException;
@@ -52,14 +51,6 @@ public class PaymentService {
             throw new ProcessingException(ProcessingException.ERROR_SOURCE_DESTINATION_EQUALS);
         }
 
-        List<AmountsTDO> amounts = pTransaction.getAmounts();
-        amounts.forEach(pAmountsTDO -> {
-            if (pAmountsTDO.getOrderAmount() != null || pAmountsTDO.getTipAmount() != null)
-                if (pAmountsTDO.getAmount().compareTo(pAmountsTDO.getOrderAmount().add(pAmountsTDO.getTipAmount())) != 0) {
-                    throw new ProcessingException(ProcessingException.ERROR_AMOUNT_IS_NOT_EQUALS_ORDER_PLUS_TIPS);
-                }
-        });
-
         Account source = accountDao.getAccountByUserAndId(pTransaction.getSource(), pUser);
         if (source == Account.NOT_FOUND) {
             throw new AccountException(AccountException.ERROR_SOURCE_ACCOUNT_DOESNT_BELONG_USER);
@@ -86,15 +77,13 @@ public class PaymentService {
             throw new AccountException(AccountException.ERROR_ACCOUNT_IS_NOT_ACTIVE, AccountException.DESTINATION);
         }
 
+        Currency currency = mCurrencyDao.getCountryByCode(pTransaction.getCurrency());
 
-        List<Amounts> convertedAmounts = new ArrayList<>();
+        if (currency == null) {
+            throw new ProcessingException(ProcessingException.ERROR_TRANSACTION_DOESNT_AUTHORIZED, "Currency wrong");
+        }
 
-        Transaction transaction = new Transaction(pTransaction, source, destination, convertedAmounts);
-        amounts
-                .forEach(pAmountsTDO -> {
-                    convertedAmounts.add(new Amounts(pAmountsTDO, transaction, mCurrencyDao.getCountryByCode(pAmountsTDO.getCurrency())));
-                });
-
+        Transaction transaction = new Transaction(pTransaction, currency, source, destination);
 
         if (StringUtils.isNotEmpty(pTransaction.getParent())) {
             transaction.setParent(transactionDao.getTransactionByGuid(pTransaction.getParent()));
@@ -112,23 +101,6 @@ public class PaymentService {
     public TransactionTDO authorizeTransaction(User pUser, TransactionTDO pTransaction) {
         pTransaction.setOperation(Transaction.Operation.AUTHORIZE);
         return new TransactionTDO(transactionProcessorManager.processing(preProcessingChecks(pUser, pTransaction)));
-    }
-
-    @Transactional
-    @Retryable(backoff = @Backoff(delay = 2000), exclude = {PaymentException.class})
-    public Transaction captureTransaction(User pUser, TransactionTDO pTransaction) {
-
-        pTransaction.setOperation(Transaction.Operation.CAPTURE);
-
-        if (StringUtils.isNotEmpty(pTransaction.getGuid())) {
-            Transaction transaction = transactionDao.getTransactionByGuid(pTransaction.getGuid());
-            if (transaction != null) {
-                transaction.setOperation(pTransaction.getOperation());
-                return transactionProcessorManager.processing(transaction);
-            }
-        }
-
-        throw new ProcessingException(ProcessingException.ERROR_TRANSACTION_DOESNT_AUTHORIZED);
     }
 
     @Transactional

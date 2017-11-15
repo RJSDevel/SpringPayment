@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import pro.yagupov.payment.dao.TransactionDao;
 import pro.yagupov.payment.domain.entity.account.Account;
-import pro.yagupov.payment.domain.entity.transaction.Amounts;
 import pro.yagupov.payment.domain.entity.transaction.Transaction;
 import pro.yagupov.payment.security.exception.ProcessingException;
 import pro.yagupov.payment.service.transaction.processors.TransactionProcessor;
@@ -33,22 +32,17 @@ public class CaptureProcessor implements TransactionProcessor {
         Account source = transaction.getSource();
         Account destination = transaction.getDestination();
 
-        BigDecimal amount = new BigDecimal(0);
-        for (Amounts amounts : transaction.getAmounts()) {
-            amount = amount.add(amounts.getAmount());
-        }
-
-        if (source.getScore().compareTo(amount) == -1) {
+        if (source.getScore().compareTo(transaction.getAmount()) == -1) {
             throw new ProcessingException(ProcessingException.ERROR_SOURCE_ACCOUNT_DO_NOT_HAVE_NEED_AMOUNT, transaction.getStatus() != null);
         }
 
-        source.setScore(source.getScore().subtract(amount));
+        source.setScore(source.getScore().subtract(transaction.getAmount()));
 
         if (transaction.getStatus() != null && transaction.getStatus() == Transaction.Status.AUTHORIZED) {
-            source.setHold(source.getHold().subtract(amount));
+            source.setHold(source.getHold().subtract(transaction.getAmount()));
         }
 
-        destination.setScore(destination.getScore().add(amount));
+        destination.setScore(destination.getScore().add(transaction.getAmount()));
 
         if (transaction.getStatus() == null) {
             transaction.setStatus(Transaction.Status.CAPTURED);

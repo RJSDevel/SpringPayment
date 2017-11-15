@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import pro.yagupov.payment.dao.TransactionDao;
 import pro.yagupov.payment.domain.entity.account.Account;
-import pro.yagupov.payment.domain.entity.transaction.Amounts;
 import pro.yagupov.payment.domain.entity.transaction.Transaction;
 import pro.yagupov.payment.security.exception.ProcessingException;
 import pro.yagupov.payment.service.transaction.processors.TransactionProcessor;
@@ -28,16 +27,12 @@ public class AuthorizeProcessor implements TransactionProcessor {
 
         Account source = transaction.getSource();
 
-        BigDecimal amount = new BigDecimal(0);
-        for (Amounts amounts : transaction.getAmounts()) {
-            amount = amount.add(amounts.getAmount());
-        }
 
-        if (source.getScore().compareTo(new BigDecimal(0)) == 0 || source.getScore().subtract(source.getHold()).compareTo(amount) == -1) {
+        if (source.getScore().compareTo(new BigDecimal(0)) == 0 || source.getScore().subtract(source.getHold()).compareTo(transaction.getAmount()) == -1) {
             throw new ProcessingException(ProcessingException.ERROR_SOURCE_ACCOUNT_DO_NOT_HAVE_NEED_AMOUNT);
         }
 
-        source.setHold(source.getHold().add(amount));
+        source.setHold(source.getHold().add(transaction.getAmount()));
 
         transaction.setStatus(Transaction.Status.AUTHORIZED);
 

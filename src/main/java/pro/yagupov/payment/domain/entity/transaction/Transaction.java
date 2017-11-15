@@ -10,6 +10,7 @@ import javax.persistence.*;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,16 +24,6 @@ import java.util.List;
 @Entity
 @Table(name = "transactions")
 public class Transaction {
-
-    @Entity
-    @Table(name = "transactions_numbers")
-    @Getter
-    private static class Number {
-        @Id
-        @Column
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private long number;
-    }
 
     public enum Operation {
         AUTHORIZE,
@@ -54,6 +45,12 @@ public class Transaction {
         VOIDED,
     }
 
+    public enum PaymentType {
+        CREDIT_DEBIT,
+        CASH,
+        CHEQUE,
+        CUSTOM_FUNDING_SOURCE
+    }
 
     @Id
     @Setter(AccessLevel.NONE)
@@ -70,6 +67,10 @@ public class Transaction {
     @JoinColumn(name = "child")
     private Transaction child;
 
+    @Column(name = "type", nullable = false, updatable = false)
+    @Enumerated(EnumType.ORDINAL)
+    private PaymentType type;
+
     @Column(nullable = false, updatable = false)
     @Enumerated(EnumType.ORDINAL)
     private Operation operation;
@@ -77,12 +78,6 @@ public class Transaction {
     @Column(nullable = false)
     @Enumerated(EnumType.ORDINAL)
     private Status status;
-
-    @OneToMany(mappedBy = "transaction", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Amounts> amounts;
-
-    @Column
-    private String comment;
 
     @Setter(AccessLevel.NONE)
     @CreationTimestamp
@@ -95,6 +90,25 @@ public class Transaction {
     private Timestamp updated;
 
     @ManyToOne
+    @JoinColumn(nullable = false, updatable = false, name = "currency")
+    private Currency currency;
+
+    @Column(updatable = false)
+    private BigDecimal amount;
+
+    @Column(name = "order_amount", updatable = false, precision = 19, scale = 2)
+    private BigDecimal orderAmount;
+
+    @Column(name = "tip_amount", updatable = false, precision = 19, scale = 2)
+    private BigDecimal tipAmount;
+
+    @Column(name = "cashback_amount", updatable = false, precision = 19, scale = 2)
+    private BigDecimal cashbackAmount;
+
+    @Column(updatable = false)
+    private String comment;
+
+    @ManyToOne
     @JoinColumn(name = "source", nullable = false, updatable = false)
     private Account source;
 
@@ -103,7 +117,7 @@ public class Transaction {
     private Account destination;
 
 
-    public Transaction(TransactionTDO pTransaction, Account pSource, Account pDestination, List<Amounts> pAmounts) {
+    public Transaction(TransactionTDO pTransaction, Currency pCurrency, Account pSource, Account pDestination) {
 
         switch (pTransaction.getOperation()) {
             case AUTHORIZE:
@@ -112,9 +126,16 @@ public class Transaction {
                 guid = pTransaction.getGuid();
         }
 
+        type = pTransaction.getType();
         operation = pTransaction.getOperation();
         status = pTransaction.getStatus();
-        amounts = pAmounts;
+
+        currency = pCurrency;
+
+        amount = pTransaction.getAmount();
+        orderAmount = pTransaction.getOrderAmount();
+        tipAmount = pTransaction.getTipAmount();
+        cashbackAmount = pTransaction.getCashbackAmount();
 
         comment = pTransaction.getComment();
 

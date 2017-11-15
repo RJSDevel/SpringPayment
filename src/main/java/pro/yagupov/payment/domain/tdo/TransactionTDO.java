@@ -6,14 +6,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import pro.yagupov.payment.domain.entity.transaction.Amounts;
 import pro.yagupov.payment.domain.entity.transaction.Transaction;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
-import java.util.function.Consumer;
 
 /**
  * Created by Yagupov Ruslan on 19.04.17.
@@ -42,13 +39,6 @@ public class TransactionTDO {
     @JsonFormat(shape = JsonFormat.Shape.NUMBER)
     private Transaction.Status status;
 
-    @JsonProperty(required = true)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private List<AmountsTDO> amounts = new ArrayList<>();
-
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private String comment;
-
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Timestamp created;
@@ -56,6 +46,28 @@ public class TransactionTDO {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Timestamp updated;
+
+    @JsonProperty(required = true)
+    @JsonFormat(shape = JsonFormat.Shape.NUMBER)
+    private Transaction.PaymentType type;
+
+    @JsonProperty(required = true)
+    private String currency;
+
+    @JsonProperty(required = true)
+    private BigDecimal amount;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private BigDecimal orderAmount = new BigDecimal(0);
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private BigDecimal tipAmount = new BigDecimal(0);
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private BigDecimal cashbackAmount = new BigDecimal(0);
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String comment;
 
     private long source;
 
@@ -68,10 +80,6 @@ public class TransactionTDO {
         if (!Objects.isNull(pTransaction.getParent())) parent = pTransaction.getParent().getGuid();
         if (!Objects.isNull(pTransaction.getChild())) child = pTransaction.getChild().getGuid();
 
-        pTransaction
-                .getAmounts()
-                .forEach(pAmounts -> amounts.add(new AmountsTDO(pAmounts)));
-
         operation = pTransaction.getOperation();
         status = pTransaction.getStatus();
 
@@ -79,6 +87,14 @@ public class TransactionTDO {
 
         created = pTransaction.getCreated();
         updated = pTransaction.getUpdated();
+
+        type = pTransaction.getType();
+        currency = pTransaction.getCurrency().getCode();
+        amount = pTransaction.getAmount();
+        orderAmount = pTransaction.getOrderAmount();
+        tipAmount = pTransaction.getTipAmount();
+        cashbackAmount = pTransaction.getCashbackAmount();
+        comment = pTransaction.getComment();
 
         source = pTransaction.getSource().getId();
         destination = pTransaction.getDestination().getId();
