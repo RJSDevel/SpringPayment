@@ -27,15 +27,11 @@ public class AuthorizeProcessor implements TransactionProcessor {
 
         Account source = transaction.getSource();
 
-
         if (source.getScore().compareTo(new BigDecimal(0)) == 0 || source.getScore().subtract(source.getHold()).compareTo(transaction.getAmount()) == -1) {
             throw new ProcessingException(ProcessingException.ERROR_SOURCE_ACCOUNT_DO_NOT_HAVE_NEED_AMOUNT);
         }
 
-        source.setHold(source.getHold().add(transaction.getAmount()));
-
         transaction.setStatus(Transaction.Status.AUTHORIZED);
-
         transactionDao.recordTransaction(transaction);
 
         return transaction;

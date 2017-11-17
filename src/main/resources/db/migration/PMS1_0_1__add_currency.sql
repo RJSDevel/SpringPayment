@@ -1,7 +1,8 @@
 CREATE TABLE IF NOT EXISTS `currency` (
   `id`   INT(11) PRIMARY KEY AUTO_INCREMENT,
   `name` VARCHAR(64)         DEFAULT NULL,
-  `code` CHAR(3)             DEFAULT NULL
+  `code` CHAR(3)             DEFAULT NULL,
+  INDEX (`code`)
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8;

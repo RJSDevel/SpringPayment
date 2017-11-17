@@ -32,10 +32,14 @@ public class TransactionDaoImpl implements TransactionDao {
 
     @Override
     public Transaction getTransactionByGuid(String guid) {
-        return (Transaction) mEntityManager
-                .createQuery("from Transaction where guid=:guid")
-                .setParameter("guid", guid)
-                .getSingleResult();
+        try {
+            return (Transaction) mEntityManager
+                    .createQuery("from Transaction where guid=:guid")
+                    .setParameter("guid", guid)
+                    .getSingleResult();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @Override
@@ -43,6 +47,15 @@ public class TransactionDaoImpl implements TransactionDao {
         return (List<Transaction>) mEntityManager
                 .createQuery("from Transaction where source=:id or destination=:id")
                 .setParameter("id", account)
+                .getResultList();
+    }
+
+    @Override
+    public List<Transaction> getTransactionsForBatch() {
+        return (List<Transaction>) mEntityManager
+                .createQuery("from Transaction where status=:status and previousStatus=:previousStatus")
+                .setParameter("previousStatus", Transaction.Status.AUTHORIZED)
+                .setParameter("status", Transaction.Status.CAPTURED)
                 .getResultList();
     }
 }

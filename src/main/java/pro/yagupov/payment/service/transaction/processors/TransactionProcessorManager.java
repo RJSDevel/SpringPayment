@@ -1,6 +1,7 @@
 package pro.yagupov.payment.service.transaction.processors;
 
 import lombok.NonNull;
+import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
@@ -12,7 +13,7 @@ import pro.yagupov.payment.security.exception.ProcessingException;
  * Created by Yagupov Ruslan on 26.04.17.
  */
 @Component
-public class TransactionProcessorManager implements TransactionProcessor {
+public class TransactionProcessorManager implements TransactionProcessor, ItemProcessor<Transaction, Transaction> {
 
     @Lazy
     @Autowired
@@ -38,5 +39,17 @@ public class TransactionProcessorManager implements TransactionProcessor {
         }
 
         throw new ProcessingException(ProcessingException.ERROR_UNKNOWN_OPERATION);
+    }
+
+    @Override
+    public Transaction process(Transaction item) throws Exception {
+
+        switch (item.getPreviousStatus()) {
+            case CAPTURED:
+                item.setOperation(Transaction.Operation.CAPTURE);
+                break;
+        }
+
+        return processing(item);
     }
 }

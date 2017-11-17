@@ -17,4 +17,6 @@ public interface TransactionDao {
     Transaction getTransactionByGuid(String guid);
 
     List<Transaction> getAllTransactionsByAccount(Account account);
+
+    List<Transaction> getTransactionsForBatch();
 }

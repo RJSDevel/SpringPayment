@@ -26,7 +26,14 @@ public class PaymentController {
     @RequestMapping(value = "authorize", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     public TransactionTDO authorizeTransaction(User user, @RequestBody TransactionTDO pTransactionTDO) {
-        return paymentService.authorizeTransaction(user, pTransactionTDO);
+        return new TransactionTDO(paymentService.authorizeTransaction(user, pTransactionTDO));
+    }
+
+    @PreAuthorize(UserGroup.ROLE_USER)
+    @RequestMapping(value = "capture", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @ResponseBody
+    public TransactionTDO captureTransaction(User user, @RequestBody TransactionTDO pTransactionTDO) {
+        return new TransactionTDO(paymentService.captureTransaction(user, pTransactionTDO));
     }
 
     @PreAuthorize(UserGroup.ROLE_USER)

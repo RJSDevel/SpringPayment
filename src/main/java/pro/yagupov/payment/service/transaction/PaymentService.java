@@ -78,9 +78,8 @@ public class PaymentService {
         }
 
         Currency currency = mCurrencyDao.getCountryByCode(pTransaction.getCurrency());
-
         if (currency == null) {
-            throw new ProcessingException(ProcessingException.ERROR_TRANSACTION_DOESNT_AUTHORIZED, "Currency wrong");
+            throw new ProcessingException(ProcessingException.ERROR_CURRENCY_CODE_IS_WRONG);
         }
 
         Transaction transaction = new Transaction(pTransaction, currency, source, destination);
@@ -98,9 +97,31 @@ public class PaymentService {
 
     @Transactional
     @Retryable(backoff = @Backoff(delay = 2000), exclude = {PaymentException.class})
-    public TransactionTDO authorizeTransaction(User pUser, TransactionTDO pTransaction) {
+    public Transaction authorizeTransaction(User pUser, TransactionTDO pTransaction) {
         pTransaction.setOperation(Transaction.Operation.AUTHORIZE);
-        return new TransactionTDO(transactionProcessorManager.processing(preProcessingChecks(pUser, pTransaction)));
+        return transactionProcessorManager.processing(preProcessingChecks(pUser, pTransaction));
+    }
+
+    @Transactional
+    @Retryable(backoff = @Backoff(delay = 2000), exclude = {PaymentException.class})
+    public Transaction captureTransaction(User pUser, TransactionTDO pTransaction) {
+        if (StringUtils.isNotEmpty(pTransaction.getGuid())) {
+            Transaction transaction =  transactionDao.getTransactionByGuid(pTransaction.getGuid());
+
+            if (transaction == null) {
+                throw new ProcessingException(ProcessingException.ERROR_TRANSACTION_NOT_FOUND);
+            }
+
+            if (transaction.getSource().getUser().getId() != pUser.getId()) {
+                throw new AccountException(AccountException.ERROR_SOURCE_ACCOUNT_DOESNT_BELONG_USER);
+            }
+
+            transaction.setOperation(Transaction.Operation.CAPTURE);
+
+            return transactionProcessorManager.processing(transaction);
+        }
+
+        throw new ProcessingException(ProcessingException.ERROR_TRANSACTION_ID_IS_WRONG);
     }
 
     @Transactional

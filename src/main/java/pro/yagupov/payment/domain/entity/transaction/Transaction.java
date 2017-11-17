@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 
 /**
@@ -43,6 +44,8 @@ public class Transaction {
         DECLINED,
         CANCELLED,
         VOIDED,
+        /* System status */
+        BATCHING
     }
 
     public enum PaymentType {
@@ -78,6 +81,11 @@ public class Transaction {
     @Column(nullable = false)
     @Enumerated(EnumType.ORDINAL)
     private Status status;
+
+    @Setter(AccessLevel.PRIVATE)
+    @Column(name = "previous_status")
+    @Enumerated(EnumType.ORDINAL)
+    private Status previousStatus;
 
     @Setter(AccessLevel.NONE)
     @CreationTimestamp
@@ -118,19 +126,11 @@ public class Transaction {
 
 
     public Transaction(TransactionTDO pTransaction, Currency pCurrency, Account pSource, Account pDestination) {
-
-        switch (pTransaction.getOperation()) {
-            case AUTHORIZE:
-                break;
-            default:
-                guid = pTransaction.getGuid();
-        }
-
         type = pTransaction.getType();
         operation = pTransaction.getOperation();
         status = pTransaction.getStatus();
 
-        currency = pCurrency;
+        if (Objects.nonNull(pCurrency)) currency = pCurrency;
 
         amount = pTransaction.getAmount();
         orderAmount = pTransaction.getOrderAmount();
@@ -141,5 +141,10 @@ public class Transaction {
 
         source = pSource;
         destination = pDestination;
+    }
+
+    public void setStatus(Status pStatus) {
+        setPreviousStatus(status);
+        status = pStatus;
     }
 }

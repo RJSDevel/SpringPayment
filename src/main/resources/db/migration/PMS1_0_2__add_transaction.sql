@@ -22,6 +22,7 @@ CREATE TABLE `transactions` (
   `type`            TINYINT(1)                                             NOT NULL,
   `operation`       TINYINT(1)                                             NOT NULL,
   `status`          TINYINT(1)                                             NOT NULL,
+  `previous_status` TINYINT(1),
   `created`         TIMESTAMP                                              NOT NULL                 DEFAULT CURRENT_TIMESTAMP,
   `updated`         TIMESTAMP                                              NOT NULL                 DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `currency`        INTEGER                                                NOT NULL,

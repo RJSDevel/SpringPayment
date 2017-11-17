@@ -25,32 +25,34 @@ public class CaptureProcessor implements TransactionProcessor {
     @Override
     public Transaction processing(@NonNull Transaction transaction) throws ProcessingException {
 
-        if (transaction.getStatus() == Transaction.Status.CAPTURED) {
-            throw new ProcessingException(ProcessingException.ERROR_TRANSACTION_ALREADY_DONE);
-        }
-
         Account source = transaction.getSource();
-        Account destination = transaction.getDestination();
 
-        if (source.getScore().compareTo(transaction.getAmount()) == -1) {
-            throw new ProcessingException(ProcessingException.ERROR_SOURCE_ACCOUNT_DO_NOT_HAVE_NEED_AMOUNT, transaction.getStatus() != null);
+        switch (transaction.getStatus()) {
+            case AUTHORIZED:
+
+                if (source.getScore().compareTo(new BigDecimal(0)) == 0 || source.getScore().subtract(source.getHold()).compareTo(transaction.getAmount()) == -1) {
+                    throw new ProcessingException(ProcessingException.ERROR_SOURCE_ACCOUNT_DO_NOT_HAVE_NEED_AMOUNT);
+                }
+
+                source.setHold(source.getHold().add(transaction.getAmount()));
+                transaction.setStatus(Transaction.Status.CAPTURED);
+                transactionDao.updateTransaction(transaction);
+                return transaction;
+            case CAPTURED:
+                if (transaction.getPreviousStatus() == Transaction.Status.CAPTURED || transaction.getOperation() == Transaction.Operation.CAPTURE) {
+                    throw new ProcessingException(ProcessingException.ERROR_TRANSACTION_HAD_CAPTURE);
+                }
         }
+
+        Account destination = transaction.getDestination();
 
         source.setScore(source.getScore().subtract(transaction.getAmount()));
 
-        if (transaction.getStatus() != null && transaction.getStatus() == Transaction.Status.AUTHORIZED) {
-            source.setHold(source.getHold().subtract(transaction.getAmount()));
-        }
+        source.setHold(source.getHold().subtract(transaction.getAmount()));
 
         destination.setScore(destination.getScore().add(transaction.getAmount()));
 
-        if (transaction.getStatus() == null) {
-            transaction.setStatus(Transaction.Status.CAPTURED);
-            transactionDao.recordTransaction(transaction);
-        } else {
-            transaction.setStatus(Transaction.Status.CAPTURED);
-            transactionDao.updateTransaction(transaction);
-        }
+        transaction.setStatus(Transaction.Status.CAPTURED);
 
         return transaction;
     }
