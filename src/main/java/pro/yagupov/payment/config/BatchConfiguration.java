@@ -17,6 +17,7 @@ import pro.yagupov.payment.service.transaction.processors.TransactionProcessorMa
 import pro.yagupov.payment.service.transaction.processors.batch.TransactionBatchJobExecutionListener;
 import pro.yagupov.payment.service.transaction.processors.batch.TransactionReader;
 import pro.yagupov.payment.service.transaction.processors.batch.TransactionWriter;
+import pro.yagupov.payment.utils.Profiles;
 
 
 /**
@@ -24,6 +25,9 @@ import pro.yagupov.payment.service.transaction.processors.batch.TransactionWrite
  */
 @Configuration
 public class BatchConfiguration {
+
+    @Autowired
+    private Profiles profiles;
 
     @Autowired
     private JobBuilderFactory jobBuilderFactory;
@@ -38,7 +42,7 @@ public class BatchConfiguration {
     private Job processJob;
 
 
-    @Scheduled(fixedRate = 15000)
+    @Scheduled(fixedRate = 60000)
     private void processingStarter() {
         JobParameters jobParameters = new JobParametersBuilder()
                 .addLong("time", System.currentTimeMillis())
@@ -60,7 +64,7 @@ public class BatchConfiguration {
 
     @Bean
     public Step orderStep1() {
-        return stepBuilderFactory.get("Step1").<Transaction, Transaction>chunk(5)
+        return stepBuilderFactory.get("Step1").<Transaction, Transaction>chunk(profiles.getBatchChunkSize())
                 .reader(transactionItemReader())
                 .processor(transactionBatchProcessor())
                 .writer(transactionItemWriter())

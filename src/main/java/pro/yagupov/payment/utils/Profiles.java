@@ -34,4 +34,7 @@ public class Profiles {
         return mEnv.getProperty("entitymanager.packagesToScan");
     }
 
+    public int getBatchChunkSize() {
+        return mEnv.getProperty("batch.chunkSize", Integer.TYPE);
+    }
 }
