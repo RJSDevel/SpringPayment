@@ -23,6 +23,9 @@ public class TransactionTDO {
     private String guid;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private long number;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String parent;
 
@@ -34,6 +37,14 @@ public class TransactionTDO {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @JsonFormat(shape = JsonFormat.Shape.NUMBER)
     private Transaction.Operation operation;
+
+    @JsonProperty(required = true)
+    @JsonFormat(shape = JsonFormat.Shape.NUMBER)
+    private Transaction.Type type;
+
+    @JsonProperty
+    @JsonFormat(shape = JsonFormat.Shape.NUMBER)
+    private Transaction.PaymentType paymentType;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY, defaultValue = "0")
     @JsonFormat(shape = JsonFormat.Shape.NUMBER)
@@ -48,23 +59,10 @@ public class TransactionTDO {
     private Timestamp updated;
 
     @JsonProperty(required = true)
-    @JsonFormat(shape = JsonFormat.Shape.NUMBER)
-    private Transaction.PaymentType type;
-
-    @JsonProperty(required = true)
     private String currency;
 
     @JsonProperty(required = true)
     private BigDecimal amount;
-
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private BigDecimal orderAmount = new BigDecimal(0);
-
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private BigDecimal tipAmount = new BigDecimal(0);
-
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private BigDecimal cashbackAmount = new BigDecimal(0);
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String comment;
@@ -76,11 +74,14 @@ public class TransactionTDO {
 
     public TransactionTDO(Transaction pTransaction) {
         guid = pTransaction.getGuid();
+        number = pTransaction.getNumber();
 
         if (!Objects.isNull(pTransaction.getParent())) parent = pTransaction.getParent().getGuid();
         if (!Objects.isNull(pTransaction.getChild())) child = pTransaction.getChild().getGuid();
 
         operation = pTransaction.getOperation();
+        type = pTransaction.getType();
+        paymentType = pTransaction.getPaymentType();
         status = pTransaction.getStatus();
 
         comment = pTransaction.getComment();
@@ -88,12 +89,9 @@ public class TransactionTDO {
         created = pTransaction.getCreated();
         updated = pTransaction.getUpdated();
 
-        type = pTransaction.getType();
         currency = pTransaction.getCurrency().getCode();
         amount = pTransaction.getAmount();
-        orderAmount = pTransaction.getOrderAmount();
-        tipAmount = pTransaction.getTipAmount();
-        cashbackAmount = pTransaction.getCashbackAmount();
+
         comment = pTransaction.getComment();
 
         source = pTransaction.getSource().getId();

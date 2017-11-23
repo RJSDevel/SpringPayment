@@ -15,24 +15,25 @@ CREATE TABLE `accounts` (
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
 
+
 CREATE TABLE `transactions` (
-  `guid`            VARCHAR(36) PRIMARY KEY UNIQUE                         NOT NULL,
-  `parent`          VARCHAR(36)                                            NULL,
-  `child`           VARCHAR(36)                                            NULL,
-  `type`            TINYINT(1)                                             NOT NULL,
-  `operation`       TINYINT(1)                                             NOT NULL,
-  `status`          TINYINT(1)                                             NOT NULL,
+  `guid`            VARCHAR(36) PRIMARY KEY UNIQUE                                 NOT NULL,
+  `number`          INTEGER UNIQUE                                                 NOT NULL                 AUTO_INCREMENT,
+  `parent`          VARCHAR(36)                                                    NULL,
+  `child`           VARCHAR(36)                                                    NULL,
+  `operation`       TINYINT(1)                                                     NOT NULL,
+  `type`            TINYINT(1)                                                     NOT NULL,
+  `payment_type`    TINYINT(1)                                                     NOT NULL,
+  `status`          TINYINT(1)                                                     NOT NULL,
   `previous_status` TINYINT(1),
-  `created`         TIMESTAMP                                              NOT NULL                 DEFAULT CURRENT_TIMESTAMP,
-  `updated`         TIMESTAMP                                              NOT NULL                 DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `currency`        INTEGER                                                NOT NULL,
-  `amount`          NUMERIC(19, 2)                                         NOT NULL                 DEFAULT 0,
-  `order_amount`    NUMERIC(19, 2)                                         NOT NULL                 DEFAULT 0,
-  `tip_amount`      NUMERIC(19, 2)                                         NOT NULL                 DEFAULT 0,
-  `cashback_amount` NUMERIC(19, 2)                                         NOT NULL                 DEFAULT 0,
-  `comment`         VARCHAR(256)                                           NULL,
-  `source`          INTEGER                                                NOT NULL,
-  `destination`     INTEGER                                                NOT NULL,
+  `created`         TIMESTAMP                                                      NOT NULL                 DEFAULT CURRENT_TIMESTAMP,
+  `updated`         TIMESTAMP                                                      NOT NULL                 DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `currency`        INTEGER                                                        NOT NULL,
+  `amount`          NUMERIC(19, 2)                                                 NOT NULL                 DEFAULT 0,
+  `comment`         VARCHAR(256)                                                   NULL,
+  `source`          INTEGER                                                        NOT NULL,
+  `destination`     INTEGER                                                        NOT NULL,
+  KEY (`number`),
   FOREIGN KEY (`source`) REFERENCES accounts (`id`),
   FOREIGN KEY (`destination`) REFERENCES accounts (`id`)
 )

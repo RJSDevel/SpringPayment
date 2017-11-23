@@ -1,8 +1,9 @@
 package pro.yagupov.payment.domain.entity.transaction;
 
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.Setter;
 import org.hibernate.annotations.*;
-import org.hibernate.annotations.Generated;
 import pro.yagupov.payment.domain.entity.account.Account;
 import pro.yagupov.payment.domain.tdo.TransactionTDO;
 
@@ -12,8 +13,6 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 
@@ -21,10 +20,22 @@ import java.util.Objects;
  * Created by Yagupov Ruslan on 18.04.17.
  */
 @Data
-@NoArgsConstructor
 @Entity
+@DynamicInsert
 @Table(name = "transactions")
 public class Transaction {
+
+    public enum Type {
+        TRANSFER,
+        ORDER
+    }
+
+    public enum PaymentType {
+        CREDIT_DEBIT,
+        CASH,
+        CHEQUE,
+        CUSTOM_FUNDING_SOURCE
+    }
 
     public enum Operation {
         AUTHORIZE,
@@ -44,23 +55,19 @@ public class Transaction {
         DECLINED,
         CANCELLED,
         VOIDED,
-        /* System status */
         BATCHING
-    }
-
-    public enum PaymentType {
-        CREDIT_DEBIT,
-        CASH,
-        CHEQUE,
-        CUSTOM_FUNDING_SOURCE
     }
 
     @Id
     @Setter(AccessLevel.NONE)
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
-    @Column(updatable = false, unique = true, length = 36)
+    @Column(updatable = false, insertable = false, unique = true, length = 36)
     private String guid;
+
+    @Generated(GenerationTime.ALWAYS)
+    @Column(updatable = false, insertable = false, unique = true)
+    private long number;
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "parent")
@@ -72,7 +79,11 @@ public class Transaction {
 
     @Column(name = "type", nullable = false, updatable = false)
     @Enumerated(EnumType.ORDINAL)
-    private PaymentType type;
+    private Type type;
+
+    @Column(name = "payment_type", nullable = false, updatable = false)
+    @Enumerated(EnumType.ORDINAL)
+    private PaymentType paymentType;
 
     @Column(nullable = false, updatable = false)
     @Enumerated(EnumType.ORDINAL)
@@ -104,15 +115,6 @@ public class Transaction {
     @Column(updatable = false)
     private BigDecimal amount;
 
-    @Column(name = "order_amount", updatable = false, precision = 19, scale = 2)
-    private BigDecimal orderAmount;
-
-    @Column(name = "tip_amount", updatable = false, precision = 19, scale = 2)
-    private BigDecimal tipAmount;
-
-    @Column(name = "cashback_amount", updatable = false, precision = 19, scale = 2)
-    private BigDecimal cashbackAmount;
-
     @Column(updatable = false)
     private String comment;
 
@@ -126,16 +128,14 @@ public class Transaction {
 
 
     public Transaction(TransactionTDO pTransaction, Currency pCurrency, Account pSource, Account pDestination) {
-        type = pTransaction.getType();
         operation = pTransaction.getOperation();
         status = pTransaction.getStatus();
+        type = pTransaction.getType();
+        paymentType = pTransaction.getPaymentType();
 
         if (Objects.nonNull(pCurrency)) currency = pCurrency;
 
         amount = pTransaction.getAmount();
-        orderAmount = pTransaction.getOrderAmount();
-        tipAmount = pTransaction.getTipAmount();
-        cashbackAmount = pTransaction.getCashbackAmount();
 
         comment = pTransaction.getComment();
 
