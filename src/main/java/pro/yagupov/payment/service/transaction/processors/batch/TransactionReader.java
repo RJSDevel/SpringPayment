@@ -1,9 +1,6 @@
 package pro.yagupov.payment.service.transaction.processors.batch;
 
 import org.springframework.batch.item.ItemReader;
-import org.springframework.batch.item.NonTransientResourceException;
-import org.springframework.batch.item.ParseException;
-import org.springframework.batch.item.UnexpectedInputException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,7 +37,7 @@ public class TransactionReader implements ItemReader<Transaction> {
 
         Transaction transaction = mTransactions.get(index++);
 
-        transaction.setStatus(Transaction.Status.BATCHING);
+        transaction.setStatus(Transaction.Status.CLEARING);
         mTransactionDao.updateTransaction(transaction);
 
         return transaction;

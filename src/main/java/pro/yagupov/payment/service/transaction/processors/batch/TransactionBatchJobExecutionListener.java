@@ -17,5 +17,4 @@ public class TransactionBatchJobExecutionListener extends JobExecutionListenerSu
                 break;
         }
     }
-
 }

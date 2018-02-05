@@ -59,9 +59,6 @@ public class TransactionTDO {
     private Timestamp updated;
 
     @JsonProperty(required = true)
-    private String currency;
-
-    @JsonProperty(required = true)
     private BigDecimal amount;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -89,7 +86,6 @@ public class TransactionTDO {
         created = pTransaction.getCreated();
         updated = pTransaction.getUpdated();
 
-        currency = pTransaction.getCurrency().getCode();
         amount = pTransaction.getAmount();
 
         comment = pTransaction.getComment();

@@ -27,12 +27,31 @@ public class AuthorizeProcessor implements TransactionProcessor {
 
         Account source = transaction.getSource();
 
-        if (source.getScore().compareTo(new BigDecimal(0)) == 0 || source.getScore().subtract(source.getHold()).compareTo(transaction.getAmount()) == -1) {
-            throw new ProcessingException(ProcessingException.ERROR_SOURCE_ACCOUNT_DO_NOT_HAVE_NEED_AMOUNT);
+        switch (transaction.getStatus()) {
+            case CAPTURED:
+                if (source.getScore().compareTo(new BigDecimal(0)) == 0 || source.getScore().subtract(source.getHold()).compareTo(transaction.getAmount()) == -1) {
+                    throw new ProcessingException(ProcessingException.ERROR_SOURCE_ACCOUNT_DO_NOT_HAVE_NEED_AMOUNT);
+                }
+
+                source.setHold(source.getHold().add(transaction.getAmount()));
+                transaction.setStatus(Transaction.Status.AUTHORIZED);
+                transactionDao.updateTransaction(transaction);
+                return transaction;
+            case AUTHORIZED:
+                if (transaction.getPreviousStatus() == Transaction.Status.AUTHORIZED || transaction.getOperation() == Transaction.Operation.AUTHORIZATION) {
+                    throw new ProcessingException(ProcessingException.ERROR_TRANSACTION_HAD_AUTHORIZED);
+                }
         }
 
+        Account destination = transaction.getDestination();
+
+        source.setScore(source.getScore().subtract(transaction.getAmount()));
+
+        source.setHold(source.getHold().subtract(transaction.getAmount()));
+
+        destination.setScore(destination.getScore().add(transaction.getAmount()));
+
         transaction.setStatus(Transaction.Status.AUTHORIZED);
-        transactionDao.recordTransaction(transaction);
 
         return transaction;
     }

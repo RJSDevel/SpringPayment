@@ -2,6 +2,7 @@ package pro.yagupov.payment.domain.entity.transaction;
 
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.*;
 import pro.yagupov.payment.domain.entity.account.Account;
@@ -20,8 +21,8 @@ import java.util.Objects;
  * Created by Yagupov Ruslan on 18.04.17.
  */
 @Data
+@NoArgsConstructor
 @Entity
-@DynamicInsert
 @Table(name = "transactions")
 public class Transaction {
 
@@ -38,16 +39,16 @@ public class Transaction {
     }
 
     public enum Operation {
-        AUTHORIZE,
         CAPTURE,
-        DECLINE,
+        AUTHORIZATION,
         REFUND,
         VOID,
+        DECLINE,
     }
 
     public enum Status {
-        AUTHORIZED,
         CAPTURED,
+        AUTHORIZED,
         PARTIALLY_CAPTURED,
         PARTIALLY_CAPTURED_AND_PARTIALLY_REFUNDED,
         REFUNDED,
@@ -55,7 +56,7 @@ public class Transaction {
         DECLINED,
         CANCELLED,
         VOIDED,
-        BATCHING
+        CLEARING
     }
 
     @Id
@@ -108,10 +109,6 @@ public class Transaction {
     @Column
     private Timestamp updated;
 
-    @ManyToOne
-    @JoinColumn(nullable = false, updatable = false, name = "currency")
-    private Currency currency;
-
     @Column(updatable = false)
     private BigDecimal amount;
 
@@ -127,13 +124,11 @@ public class Transaction {
     private Account destination;
 
 
-    public Transaction(TransactionTDO pTransaction, Currency pCurrency, Account pSource, Account pDestination) {
+    public Transaction(TransactionTDO pTransaction, Account pSource, Account pDestination) {
         operation = pTransaction.getOperation();
         status = pTransaction.getStatus();
         type = pTransaction.getType();
         paymentType = pTransaction.getPaymentType();
-
-        if (Objects.nonNull(pCurrency)) currency = pCurrency;
 
         amount = pTransaction.getAmount();
 

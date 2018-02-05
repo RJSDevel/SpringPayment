@@ -21,9 +21,13 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
     @Override
     public Currency getCountryByCode(String code) {
-        return (Currency) mEntityManager
-                .createQuery("from Currency where code = :code")
-                .setParameter("code", code)
-                .getSingleResult();
+        try {
+            return (Currency) mEntityManager
+                    .createQuery("from Currency where code = :code")
+                    .setParameter("code", code)
+                    .getSingleResult();
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

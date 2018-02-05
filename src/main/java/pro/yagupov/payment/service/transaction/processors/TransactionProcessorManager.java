@@ -29,7 +29,7 @@ public class TransactionProcessorManager implements TransactionProcessor, ItemPr
     @Override
     public Transaction processing(@NonNull Transaction transaction) throws ProcessingException {
         switch (transaction.getOperation()) {
-            case AUTHORIZE:
+            case AUTHORIZATION:
                 return authorize.processing(transaction);
             case CAPTURE:
                 return capture.processing(transaction);
@@ -45,8 +45,8 @@ public class TransactionProcessorManager implements TransactionProcessor, ItemPr
     public Transaction process(Transaction item) throws Exception {
 
         switch (item.getPreviousStatus()) {
-            case CAPTURED:
-                item.setOperation(Transaction.Operation.CAPTURE);
+            case AUTHORIZED:
+                item.setOperation(Transaction.Operation.AUTHORIZATION);
                 break;
         }
 

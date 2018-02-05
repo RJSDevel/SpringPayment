@@ -12,7 +12,6 @@ import pro.yagupov.payment.dao.TransactionDao;
 import pro.yagupov.payment.dao.UserDao;
 import pro.yagupov.payment.domain.entity.account.Account;
 import pro.yagupov.payment.domain.entity.auth.User;
-import pro.yagupov.payment.domain.entity.transaction.Currency;
 import pro.yagupov.payment.domain.entity.transaction.Transaction;
 import pro.yagupov.payment.domain.tdo.TransactionTDO;
 import pro.yagupov.payment.security.exception.AccountException;
@@ -40,9 +39,6 @@ public class PaymentService {
 
     @Autowired
     private TransactionProcessorManager transactionProcessorManager;
-
-    @Autowired
-    private CurrencyDao mCurrencyDao;
 
 
     private Transaction preProcessingChecks(User pUser, TransactionTDO pTransaction) {
@@ -77,12 +73,8 @@ public class PaymentService {
             throw new AccountException(AccountException.ERROR_ACCOUNT_IS_NOT_ACTIVE, AccountException.DESTINATION);
         }
 
-        Currency currency = mCurrencyDao.getCountryByCode(pTransaction.getCurrency());
-        if (currency == null) {
-            throw new ProcessingException(ProcessingException.ERROR_CURRENCY_CODE_IS_WRONG);
-        }
 
-        Transaction transaction = new Transaction(pTransaction, currency, source, destination);
+        Transaction transaction = new Transaction(pTransaction, source, destination);
 
         if (StringUtils.isNotEmpty(pTransaction.getParent())) {
             transaction.setParent(transactionDao.getTransactionByGuid(pTransaction.getParent()));
@@ -98,13 +90,6 @@ public class PaymentService {
     @Transactional
     @Retryable(backoff = @Backoff(delay = 2000), exclude = {PaymentException.class})
     public Transaction authorizeTransaction(User pUser, TransactionTDO pTransaction) {
-        pTransaction.setOperation(Transaction.Operation.AUTHORIZE);
-        return transactionProcessorManager.processing(preProcessingChecks(pUser, pTransaction));
-    }
-
-    @Transactional
-    @Retryable(backoff = @Backoff(delay = 2000), exclude = {PaymentException.class})
-    public Transaction captureTransaction(User pUser, TransactionTDO pTransaction) {
         if (StringUtils.isNotEmpty(pTransaction.getGuid())) {
             Transaction transaction =  transactionDao.getTransactionByGuid(pTransaction.getGuid());
 
@@ -116,7 +101,7 @@ public class PaymentService {
                 throw new AccountException(AccountException.ERROR_SOURCE_ACCOUNT_DOESNT_BELONG_USER);
             }
 
-            transaction.setOperation(Transaction.Operation.CAPTURE);
+            transaction.setOperation(Transaction.Operation.AUTHORIZATION);
 
             return transactionProcessorManager.processing(transaction);
         }
@@ -126,14 +111,53 @@ public class PaymentService {
 
     @Transactional
     @Retryable(backoff = @Backoff(delay = 2000), exclude = {PaymentException.class})
+    public Transaction captureTransaction(User pUser, TransactionTDO pTransaction) {
+        pTransaction.setOperation(Transaction.Operation.CAPTURE);
+        return transactionProcessorManager.processing(preProcessingChecks(pUser, pTransaction));
+    }
+
+    @Transactional
+    @Retryable(backoff = @Backoff(delay = 2000), exclude = {PaymentException.class})
     public Transaction refundTransaction(User pUser, TransactionTDO pTransaction) {
-        return null;
+        if (StringUtils.isNotEmpty(pTransaction.getGuid())) {
+            Transaction transaction =  transactionDao.getTransactionByGuid(pTransaction.getGuid());
+
+            if (transaction == null) {
+                throw new ProcessingException(ProcessingException.ERROR_TRANSACTION_NOT_FOUND);
+            }
+
+            if (transaction.getSource().getUser().getId() != pUser.getId()) {
+                throw new AccountException(AccountException.ERROR_SOURCE_ACCOUNT_DOESNT_BELONG_USER);
+            }
+
+            transaction.setOperation(Transaction.Operation.REFUND);
+
+            return transactionProcessorManager.processing(transaction);
+        }
+
+        throw new ProcessingException(ProcessingException.ERROR_TRANSACTION_ID_IS_WRONG);
     }
 
     @Transactional
     @Retryable(backoff = @Backoff(delay = 2000), exclude = {PaymentException.class})
     public Transaction voidTransaction(User pUser, TransactionTDO pTransaction) {
-        return null;
+        if (StringUtils.isNotEmpty(pTransaction.getGuid())) {
+            Transaction transaction =  transactionDao.getTransactionByGuid(pTransaction.getGuid());
+
+            if (transaction == null) {
+                throw new ProcessingException(ProcessingException.ERROR_TRANSACTION_NOT_FOUND);
+            }
+
+            if (transaction.getSource().getUser().getId() != pUser.getId()) {
+                throw new AccountException(AccountException.ERROR_SOURCE_ACCOUNT_DOESNT_BELONG_USER);
+            }
+
+            transaction.setOperation(Transaction.Operation.VOID);
+
+            return transactionProcessorManager.processing(transaction);
+        }
+
+        throw new ProcessingException(ProcessingException.ERROR_TRANSACTION_ID_IS_WRONG);
     }
 
     @Transactional
